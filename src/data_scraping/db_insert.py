@@ -91,7 +91,7 @@ def insert_table(table, schema, name, db):
     table.to_sql(name, con=engine, index=False, if_exists='append')
 
 
-def insert_game_team_tables(folder, db):
+def insert_game_team_tables(folder, db, verbose=False):
     # todo: teams change names, and cities, and its a fucking mess
     #   re: the hornets and the pelicans fuckery
     files = os.listdir(folder)
@@ -122,8 +122,11 @@ def insert_game_team_tables(folder, db):
             if hdata['team_id'] in seen_teams:
                 if hdata['team_slug'] != seen_teams[hdata['team_id']]['team_slug'] and \
                         gdata['date'] > seen_teams[hdata['team_id']]['date']:
-                    print(f'team id: {hdata["team_id"]} switched from {seen_teams[hdata["team_id"]]["team_slug"]} to'
-                          f' {hdata["team_slug"]} on {gdata["date"]}')
+
+                    if verbose:
+                        print(f'team id: {hdata["team_id"]} switched from {seen_teams[hdata["team_id"]]["team_slug"]} to'
+                              f' {hdata["team_slug"]} on {gdata["date"]}')
+
                     seen_teams[hdata['team_id']]['team_slug'] = hdata['team_slug']
                     seen_teams[hdata['team_id']]['team_name'] = hdata['team_name']
                     seen_teams[hdata['team_id']]['date'] = gdata['date']
@@ -136,9 +139,10 @@ def insert_game_team_tables(folder, db):
             if adata['team_id'] in seen_teams:
                 if adata['team_slug'] != seen_teams[adata['team_id']]['team_slug'] and \
                         gdata['date'] > seen_teams[adata['team_id']]['date']:
-                    print(
-                        f'team id: {adata["team_id"]} switched from {seen_teams[adata["team_id"]]["team_slug"]} to '
-                        f'{adata["team_slug"]} on {gdata["date"]}')
+
+                    if verbose:
+                        print(f'team id: {adata["team_id"]} switched from {seen_teams[adata["team_id"]]["team_slug"]} to '
+                              f'{adata["team_slug"]} on {gdata["date"]}')
 
                 seen_teams[adata['team_id']]['team_slug'] = adata['team_slug']
                 seen_teams[adata['team_id']]['team_name'] = adata['team_name']
@@ -165,7 +169,7 @@ def insert_game_team_tables(folder, db):
     insert_table(team_table, TEAMS_SCHEMA, 'teams', db)
 
 
-def insert_player_stats_tables(folder, db):
+def insert_player_stats_tables(folder, db, verbose=False):
     files = os.listdir(folder)
 
     players = []
