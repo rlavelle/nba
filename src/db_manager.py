@@ -6,7 +6,11 @@ class DBManager:
         self.engine = engine
 
     def execute_query(self, query):
-        return pd.read_sql_query(query, self.engine)
+        ret = pd.read_sql_query(query, self.engine)
+        if 'date' in ret.columns:
+            ret['date'] = pd.to_datetime(ret.date)
+
+        return ret
 
     def get_games(self):
         query = 'SELECT * FROM games;'
@@ -48,42 +52,59 @@ class DBManager:
 
     def get_player_stats_team(self, player_slug, team_name):
         query = f"""
-            SELECT *
+            SELECT DISTINCT stats.*, teams.team_name, players.player_slug
             FROM stats
-            WHERE player_id = '{self.get_player_id(player_slug)}'
-            AND team_id = '{self.get_team_id(team_name)}';
+            JOIN teams ON stats.team_id = teams.team_id
+            JOIN players ON stats.player_id = players.player_id
+            WHERE players.player_id = '{self.get_player_id(player_slug)}'
+            AND teams.team_id = '{self.get_team_id(team_name)}';
         """
-        return self.execute_query(query)
+        return self.execute_query(query).sort_values(by='date')
 
     def get_player_stats_season(self, player_slug, season_type_code, season=None):
         query = """
-            SELECT *
+            SELECT DISTINCT s.*, 
+                            g.season, g.season_type, g.season_type_code, 
+                            g.dint, g.date, g.home_team, g.away_team, 
+                            g.home_score, g.away_score,
+                            t.team_name, p.player_slug
             FROM stats s
             INNER JOIN games g ON s.game_id = g.game_id
+            INNER JOIN teams t ON s.team_id = t.team_id
+            INNER JOIN players p ON s.player_id = p.player_id
             WHERE s.player_id = '{player_id}'
-            """.format(player_id=self.get_player_id(player_slug))
+        """.format(player_id=self.get_player_id(player_slug))
 
         if season is not None:
             query += f" AND g.season = '{season}'"
 
         query += f" AND g.season_type_code = '{season_type_code}';"
 
-        return self.execute_query(query)
+        ret = self.execute_query(query).sort_values(by='date')
+
+        return ret.loc[:, ret.columns[~ret.columns.duplicated()]]
 
     def get_team_games_season(self, team_name, season_type_code, season=None):
         query = """
-            SELECT *
-            FROM games
-            WHERE (home_team = '{team_id}'
-            OR away_team = '{team_id}')
+            SELECT DISTINCT g.*
+            FROM games g
+            INNER JOIN teams t ON g.home_team = t.team_id OR g.away_team = t.team_id
+            WHERE t.team_id = '{team_id}'
         """.format(team_id=self.get_team_id(team_name))
 
         if season is not None:
-            query += f" AND season = '{season}'"
+            query += f" AND g.season = '{season}'"
 
-        query += f" AND season_type_code = '{season_type_code}';"
+        query += f" AND g.season_type_code = '{season_type_code}';"
 
-        return self.execute_query(query)
+        res = self.execute_query(query)
+
+        teams = self.get_teams()
+
+        ret = pd.merge(res, teams, left_on='home_team', right_on='team_id', suffixes=('_home', '_away'))
+        ret = pd.merge(ret, teams, left_on='away_team', right_on='team_id', suffixes=('_home', '_away'))
+
+        return ret.drop(['team_id_home', 'team_id_away'], axis=1).sort_values(by='date')
 
     def get_teams_season(self, season, season_type_code):
         query = f"""
