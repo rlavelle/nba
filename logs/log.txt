@@ -1,0 +1,9 @@
+2024-01-09 22:02:59 - test
+2024-01-09 22:36:53 - Attempt 1: Service Unavailable (503). Retrying in 10 seconds.
+2024-01-09 22:36:53 - https://core-api.nba.com/cp/api/v1.3/feeds/gamecardfeed {'gamedate': '05/09/2001', 'platform': 'web'}
+2024-01-10 03:11:28 - Attempt 1: Service Unavailable (503). Retrying in 10 seconds.
+2024-01-10 03:11:28 - https://core-api.nba.com/cp/api/v1.3/feeds/gamecardfeed {'gamedate': '03/23/2012', 'platform': 'web'}
+2024-01-10 05:06:06 - Attempt 1: Service Unavailable (503). Retrying in 10 seconds.
+2024-01-10 05:06:06 - https://core-api.nba.com/cp/api/v1.3/feeds/gamecardfeed {'gamedate': '07/09/2016', 'platform': 'web'}
+2024-01-10 05:22:10 - Attempt 1: Service Unavailable (503). Retrying in 10 seconds.
+2024-01-10 05:22:10 - https://core-api.nba.com/cp/api/v1.3/feeds/gamecardfeed {'gamedate': '01/18/2017', 'platform': 'web'}
