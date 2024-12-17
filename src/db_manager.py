@@ -106,6 +106,18 @@ class DBManager:
 
         return ret.drop(['team_id_home', 'team_id_away'], axis=1).sort_values(by='date')
 
+    def get_season_stats(self, season_type_code, season=None):
+        query = f"""
+            SELECT s.*, g.season, g.season_type, g.season_type_code, g.dint, g.date
+            FROM stats s
+            INNER JOIN games g ON s.game_id = g.game_id
+            WHERE g.season_type_code = '{season_type_code}'
+        """
+        if season is not None:
+            query += f" AND g.season = '{season}'"
+
+        return self.execute_query(query)
+
     def get_teams_season(self, season, season_type_code):
         query = f"""
             SELECT DISTINCT t.*
