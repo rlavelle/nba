@@ -1,18 +1,30 @@
+import numpy as np
 import pandas as pd
 
+from src.db.utils import get_engine
+from src.logging.logger import Logger
 from src.types.game_types import StatType, SeasonType
 
 
 class DBManager:
-    def __init__(self, engine):
-        self.engine = engine
+    def __init__(self, logger=None):
+        self.engine = get_engine()
+
+        if logger:
+            self.logger = logger
+        else:
+            self.logger = Logger()
 
     def execute_query(self, query:str) -> pd.DataFrame:
-        ret = pd.read_sql_query(query, self.engine)
-        if 'date' in ret.columns:
-            ret['date'] = pd.to_datetime(ret.date)
+        try:
+            ret = pd.read_sql_query(query, self.engine)
+            if 'date' in ret.columns:
+                ret['date'] = pd.to_datetime(ret.date)
+            return ret
 
-        return ret
+        except Exception as e:
+            self.logger.log(f'[QUERY ERROR]: {e}')
+            return pd.DataFrame([])
 
     def get_games(self) -> pd.DataFrame:
         query = 'SELECT * FROM games;'
@@ -25,6 +37,14 @@ class DBManager:
     def get_players(self) -> pd.DataFrame:
         query = 'SELECT * FROM players;'
         return self.execute_query(query)
+
+    def get_all_player_ids(self) -> np.ndarray:
+        query = 'SELECT player_id FROM players;'
+        return self.execute_query(query).player_id.values
+
+    def get_all_team_ids(self) -> np.ndarray:
+        query = 'SELECT team_id FROM teams;'
+        return self.execute_query(query).team_id.values
 
     def get_player_stats(self) -> pd.DataFrame:
         query = 'SELECT * FROM player_stats;'

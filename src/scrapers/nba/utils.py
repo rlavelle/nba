@@ -7,6 +7,7 @@ import numpy as np
 import pandas as pd
 
 from src.db.constants import SCHEMAS
+from src.db.db_manager import DBManager
 from src.db.schema import GAMES_META_SCHEMA, TEAMS_SCHEMA, PLAYERS_SCHEMA, GAME_STATS_SCHEMA, PLAYER_STATS_SCHEMA
 from src.db.utils import insert_table
 from src.logging.logger import Logger
@@ -94,6 +95,9 @@ def is_date_data_complete(dir:str, dint:int) -> bool:
 
 
 def is_game_data_complete(dir:str) -> bool:
+    if not os.path.exists(dir):
+        return False
+
     files = get_files(dir)
     return len(files) == N_STAT_TYPES
 
@@ -116,6 +120,7 @@ def fetch_and_save_boxscore(game_id:str,
     if 'error' in score:
         print(f'bad api hit on {game_id}')
         logger.log(f'bad api hit on {game_id}')
+        logger.log(score['error'])
         return
 
     validate_game = score['meta']['request'].split('/')[4]
@@ -296,9 +301,11 @@ def clean_tables(game_meta, game_stats, team_meta, player_meta, player_stats):
     return game_meta_table, game_stats_table, team_meta_table, player_meta_table, player_stats_table
 
 
-def insert_parsed_data_by_day(games_folder:str, db:str, date:str):
-    seen_players = set()
-    seen_teams = set()
+def insert_parsed_data_by_day(games_folder:str, date:str, logger: Logger):
+    dbm = DBManager(logger=logger)
+
+    seen_players = set(dbm.get_all_player_ids().tolist())
+    seen_teams = set(dbm.get_all_team_ids().tolist())
 
     master_player_meta = []
     master_player_stats = []
@@ -311,15 +318,15 @@ def insert_parsed_data_by_day(games_folder:str, db:str, date:str):
         path = os.path.join(games_folder, game)
         game_meta, game_stats, player_data, player_stats, team_data = parse_dumped_game_data(path, int(date), game)
 
-        for pdata in player_data:
-            if not pdata['player_id'] in seen_players:
-                master_player_meta.append(pdata)
-                seen_players.add(pdata['player_id'])
+        for player in player_data:
+            if player['player_id'] not in seen_players:
+                master_player_meta.append(player)
+                seen_players.add(player['player_id'])
 
-        for tdata in team_data:
-            if not tdata['team_id'] in seen_teams:
-                master_team_meta.append(tdata)
-                seen_teams.add(tdata['team_id'])
+        for team in team_data:
+            if team['team_id'] not in seen_teams:
+                master_team_meta.append(team)
+                seen_teams.add(team['team_id'])
 
         master_player_stats.extend(player_stats)
         master_game_stats.extend(game_stats)
@@ -333,4 +340,7 @@ def insert_parsed_data_by_day(games_folder:str, db:str, date:str):
     names = ['games', 'teams', 'players', 'player_stats', 'game_stats']
 
     for table, schema, name in zip(tables, SCHEMAS, names):
-        insert_table(table, schema, name, db, drop=False)
+        try:
+            insert_table(table, schema, name, drop=False)
+        except Exception as e:
+            logger.log(f'[ERROR ON INSERT]: {e}')

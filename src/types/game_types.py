@@ -1,21 +1,17 @@
 from enum import Enum
 from typing import Literal
 
+
 SeasonTypeLiteral = Literal["Regular Season", "Playoffs", "All-Star", "Preseason", "Summer League", "PlayIn", "IST Championship"]
 
 
-class StrEnum(str, Enum):
-    def __eq__(self, other):
-        if isinstance(other, str):
-            return self.value == other
-        return super().__eq__(other)
-
-class StatType(StrEnum):
+class StatType(str, Enum):
     STARTERS = "starters"
     BENCH = "bench"
     TOTAL = "statistics"
 
-class SeasonType(StrEnum):
+
+class SeasonType(str, Enum):
     REGULAR = '00'
     PLAYOFFS = '01'
     ALL_STAR = '02'

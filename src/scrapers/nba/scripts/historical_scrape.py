@@ -37,6 +37,7 @@ if __name__ == "__main__":
             if 'error' in games:
                 print(f'bad api hit on {date}')
                 logger.log(f'bad api hit on {date}')
+                logger.log(games['error'])
                 continue
 
             if len(games) == 0:
