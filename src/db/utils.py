@@ -1,7 +1,8 @@
+import pandas as pd
 from sqlalchemy import create_engine, text
 
 
-def insert_table(table, schema, name, db, drop=False):
+def insert_table(table: pd.DataFrame, schema:str, name:str, db:str, drop=False):
     engine = create_engine(f'sqlite:///{db}')
 
     if drop:

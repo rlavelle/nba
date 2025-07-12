@@ -5,10 +5,11 @@ import json
 import os
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from src.scrapers.nba.nba_stats_api import NBAStatsApi
-import src.scrapers.nba.utils as util
 from src.config import CONFIG_PATH
 from src.logging.logger import Logger
 from datetime import datetime
+
+from src.scrapers.nba.utils import fetch_and_save_boxscore, parse_games, date_to_dint, date_to_lookup
 
 if __name__ == "__main__":
     logger = Logger(fpath='cron_path')
@@ -23,8 +24,8 @@ if __name__ == "__main__":
 
     date = datetime.today()
     logger.log(f'[SCRAPE FOR {date}]')
-    lookup = util.date_to_lookup(date)
-    dint = util.date_to_dint(date)
+    lookup = date_to_lookup(date)
+    dint = date_to_dint(date)
 
     games = api.get_games(date=lookup)
 
@@ -33,7 +34,7 @@ if __name__ == "__main__":
         logger.log(f'bad api hit on {date}')
 
     if len(games) > 0:
-        fmt_games = util.parse_games(games=games)
+        fmt_games = parse_games(games=games)
         print(f'{dint} {len(fmt_games)} games')
 
         date_path = os.path.join(data_path, str(dint))
@@ -50,8 +51,8 @@ if __name__ == "__main__":
                     for boxscore in boxscores:
                         futures.append(
                             executor.submit(
-                                util.fetch_and_save_boxscore,
-                                game_id, boxscore, api, util, game_path, logger
+                                fetch_and_save_boxscore,
+                                game_id, boxscore, api, game_path, logger
                             )
                         )
 

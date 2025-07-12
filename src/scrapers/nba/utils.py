@@ -1,19 +1,26 @@
 import json
 import os
 from datetime import datetime, timedelta
+from typing import Any, Tuple
 
 import pandas as pd
+
+from src.logging.logger import Logger
+from src.scrapers.nba.nba_stats_api import NBAStatsApi
+from src.types.game_types import SeasonType, StatType
+from src.types.nba_api_types import RawPlayerData, PlayerStats, RawGameMeta, GameMeta, RawTeamMeta, RawTeamData, \
+    TeamMeta, RawGameStats, GameStats, PlayerMeta
 
 N_STAT_TYPES = 7 # number of types of stats pulled per game
 
 SEASON_TYPE_MAP = {
-    'Regular Season': '00',
-    'Playoffs': '01',
-    'All-Star': '02',
-    'Preseason': '03',
-    'Summer League': '04',
-    'PlayIn': '05',
-    'IST Championship': '06'
+    'Regular Season': SeasonType.REGULAR,
+    'Playoffs': SeasonType.PLAYOFFS,
+    'All-Star': SeasonType.ALL_STAR,
+    'Preseason': SeasonType.PRESEASON,
+    'Summer League': SeasonType.SUMMER_LEAGUE,
+    'PlayIn': SeasonType.PLAY_IN,
+    'IST Championship': SeasonType.IST_CHAMPIONSHIP
 }
 
 PLAYER_DUPE_COLS = [
@@ -62,7 +69,7 @@ def parse_games(games:dict[str]) -> dict[str]:
     return fmt_games
 
 
-def generate_dates(start_year, start_month=1, start_day=1):
+def generate_dates(start_year:int, start_month:int=1, start_day:int=1) -> list[datetime.date]:
     start_date = datetime(start_year, start_month, start_day)
     end_date = datetime.today()
 
@@ -76,23 +83,23 @@ def generate_dates(start_year, start_month=1, start_day=1):
     return dates
 
 
-def date_to_dint(date):
+def date_to_dint(date:datetime.date) -> int:
     return int(date.strftime('%Y%m%d'))
 
 
-def date_to_lookup(date, date_format="%m/%d/%Y"):
+def date_to_lookup(date:datetime.date, date_format="%m/%d/%Y") -> str:
     return date.strftime(date_format)
 
 
-def get_dirs(dir):
+def get_dirs(dir:str) -> list[str]:
     return [name for name in os.listdir(dir) if os.path.isdir(os.path.join(dir, name))]
 
 
-def get_files(dir):
+def get_files(dir:str) -> list[str]:
     return [name for name in os.listdir(dir) if os.path.isfile(os.path.join(dir, name))]
 
 
-def is_date_data_complete(dir, dint):
+def is_date_data_complete(dir:str, dint:int) -> bool:
     if not os.path.isdir(dir):
         return False
     game_file = os.path.join(dir,f'{dint}_games.json')
@@ -114,16 +121,20 @@ def is_date_data_complete(dir, dint):
     return True
 
 
-def is_game_data_complete(dir):
+def is_game_data_complete(dir:str) -> bool:
     files = get_files(dir)
     return len(files) == N_STAT_TYPES
 
 
-def stat_type_exists(fpath):
+def stat_type_exists(fpath:str) -> bool:
     return os.path.isfile(fpath)
 
 
-def fetch_and_save_boxscore(game_id, boxscore, api, util, data_path, logger):
+def fetch_and_save_boxscore(game_id:str,
+                            boxscore:str,
+                            api:NBAStatsApi,
+                            data_path:str,
+                            logger:Logger):
     stat_type_fpath = os.path.join(data_path, f'{game_id}_{boxscore}_stats.json')
     if stat_type_exists(stat_type_fpath):
         return
@@ -138,14 +149,14 @@ def fetch_and_save_boxscore(game_id, boxscore, api, util, data_path, logger):
     validate_game = score['meta']['request'].split('/')[4]
     assert game_id == validate_game, f'{game_id} <> {validate_game}'
 
-    fmt_game = util.parse_boxscore(score=score)
+    fmt_game = parse_boxscore(score=score)
     json.dump(fmt_game, open(stat_type_fpath, 'w'))
 
     msg = f"[SUCCESS] {game_id}/{boxscore}"
     logger.log(msg)
 
 
-def fmt_player_data(player):
+def fmt_player_data(player:RawPlayerData) -> PlayerMeta:
     return {
         'player_id': player['personId'],
         'player_name': player['firstName'] + ' ' + player['familyName'],
@@ -153,7 +164,11 @@ def fmt_player_data(player):
     }
 
 
-def fmt_stats_data(stats, game_id, player_id, team_id, position):
+def fmt_stats_data(stats:dict[str, Any],
+                   game_id:str,
+                   player_id:int,
+                   team_id:int,
+                   position:str) -> PlayerStats:
     return {
         'player_id': player_id,
         'team_id': team_id,
@@ -163,18 +178,18 @@ def fmt_stats_data(stats, game_id, player_id, team_id, position):
     }
 
 
-def fmt_game_data(game, date, game_id):
+def fmt_game_data(game: RawGameMeta, dint:int, game_id: str) -> GameMeta:
     return {
         'game_id': game_id,
         'season': game['meta']['season_yr'],
         'season_type': game['meta']['season_type'],
         'season_type_code': SEASON_TYPE_MAP[game['meta']['season_type']],
-        'dint': date,
-        'date': datetime.strptime(str(date), '%Y%m%d'),
+        'dint': dint,
+        'date': datetime.strptime(str(dint), '%Y%m%d'),
     }
 
 
-def fmt_team_data(team):
+def fmt_team_data(team: RawTeamData) -> TeamMeta:
     return {
         'team_id': team['teamId'],
         'team_name': team['teamName'],
@@ -182,25 +197,26 @@ def fmt_team_data(team):
     }
 
 
-def is_bad_game(game):
+def is_bad_game(game: RawGameMeta) -> bool:
     return not ('home' in game and game['home'] and 'away' in game and game['away'])
 
 
-def is_bad_stat(game):
+def is_bad_stat(game: RawGameStats) -> bool:
     for side in ['homeTeam', 'awayTeam']:
         if side not in game:
             return True
 
         team = game[side]
-        if 'statistics' not in team:
+        if StatType.TOTAL.value not in team:
             return True
 
-        if not team['statistics']:
+        if not team[StatType.TOTAL.value]:
             return True
 
     return False
 
-def time_to_minutes(time_string):
+
+def time_to_minutes(time_string:str) -> float:
     x = list(map(int, time_string.split(':')))
     if len(x) == 2:
         total_seconds = x[0] * 60 + x[1]
@@ -209,25 +225,28 @@ def time_to_minutes(time_string):
 
     return total_seconds / 60
 
-def parse_dumped_game_data(game_dir, date, game_id):
+
+def parse_dumped_game_data(game_dir:str, dint:int, game_id:str)\
+        -> Tuple[GameMeta, list[GameStats], list[PlayerMeta], list[PlayerStats], list[TeamMeta]]:
+
     stat_files = os.listdir(game_dir)
 
-    game_meta = None
+    game_meta:GameMeta = None
     seen_players = set()
     player_stats_dict = {}
     game_stats_dict = {}
-    player_data = []
-    team_data = []
+    player_data:list[PlayerMeta] = []
+    team_data:list[TeamMeta] = []
 
     for stat_file in stat_files:
         fpath = os.path.join(game_dir, stat_file)
-        j = json.load(open(fpath))
+        j:RawGameMeta|RawGameStats = json.load(open(fpath))
 
         if 'meta' in stat_file:
             if is_bad_game(j):
                 continue
 
-            game_meta = fmt_game_data(j, date, game_id)
+            game_meta = fmt_game_data(j, dint, game_id)
 
             for side in ['home', 'away']:
                 team = j[side]
@@ -238,15 +257,15 @@ def parse_dumped_game_data(game_dir, date, game_id):
                 continue
 
             for side in ['homeTeam', 'awayTeam']:
-                team = j[side]
-                players = team['players']
+                team:RawTeamData = j[side]
+                players:list[RawPlayerData] = team['players']
                 team_id = team['teamId']
                 is_home = side == 'homeTeam'
 
                 # game stats
                 if 'usage' not in stat_file:
-                    for stat_type in ['statistics', 'starters', 'bench']:
-                        if stat_type not in team:
+                    for stat_type in list(StatType):
+                        if stat_type.value not in team:
                             continue
 
                         key = str(game_id) + '_' + str(team_id) + '_' + stat_type
@@ -263,7 +282,7 @@ def parse_dumped_game_data(game_dir, date, game_id):
                 for player in players:
                     pdata = fmt_player_data(player)
 
-                    if 'statistics' not in player:
+                    if StatType.TOTAL not in player:
                         continue
 
                     pid = pdata['player_id']

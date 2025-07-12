@@ -11,6 +11,7 @@ from src.scrapers.nba.utils import time_to_minutes, get_dirs, parse_dumped_game_
 from src.db.schema import TEAMS_SCHEMA, PLAYERS_SCHEMA, GAMES_META_SCHEMA, \
     PLAYER_STATS_SCHEMA, GAME_STATS_SCHEMA
 
+
 if __name__ == "__main__":
     config = configparser.ConfigParser()
     config.read(CONFIG_PATH)
@@ -34,7 +35,7 @@ if __name__ == "__main__":
         games = get_dirs(os.path.join(games_folder, date))
         for game in games:
             path = os.path.join(games_folder, date, game)
-            game_meta, game_stats, player_data, player_stats, team_data = parse_dumped_game_data(path, date, game)
+            game_meta, game_stats, player_data, player_stats, team_data = parse_dumped_game_data(path, int(date), game)
 
             for pdata in player_data:
                 if not pdata['player_id'] in seen_players:

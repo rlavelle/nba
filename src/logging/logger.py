@@ -5,13 +5,13 @@ from src.logging.email_sender import EmailSender
 
 
 class Logger:
-    def __init__(self, fpath='path'):
+    def __init__(self, fpath:str='path'):
         self.config = configparser.ConfigParser()
         self.config.read(CONFIG_PATH)
 
         self.filename = self.config.get('LOG_PATH', fpath)
 
-    def log(self, message, email=False):
+    def log(self, message:str, email=False):
         timestamp = datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')
         log_entry = f'{timestamp} - {message}\n'
 
@@ -30,7 +30,7 @@ class Logger:
         email_sender.send_email()
 
     @staticmethod
-    def send_error(message):
+    def send_error(message:str):
         email_sender = EmailSender()
         email_sender.read_recipients_from_file()
         email_sender.set_subject('Error Log')
