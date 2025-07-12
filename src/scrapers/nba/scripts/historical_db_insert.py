@@ -1,13 +1,13 @@
 import configparser
 
 import pandas as pd
-import json
 import os
 import numpy as np
 
 from src.config import CONFIG_PATH
 from src.db.utils import insert_table
-from src.scrapers.nba.utils import time_to_minutes, get_dirs, parse_dumped_game_data, GAME_DUPE_COLS, PLAYER_DUPE_COLS
+from src.scrapers.nba.utils import time_to_minutes, get_dirs, parse_dumped_game_data, clean_tables
+from src.scrapers.nba.constants import PLAYER_DUPE_COLS, GAME_DUPE_COLS
 from src.db.schema import TEAMS_SCHEMA, PLAYERS_SCHEMA, GAMES_META_SCHEMA, \
     PLAYER_STATS_SCHEMA, GAME_STATS_SCHEMA
 
@@ -54,22 +54,9 @@ if __name__ == "__main__":
         if i > 100:
             break
 
-    game_meta_table = pd.DataFrame(master_game_meta).replace('', np.nan)
-    game_stats_table = pd.DataFrame(master_game_stats).replace('', np.nan)
-    team_meta_table = pd.DataFrame(master_team_meta).replace('', np.nan)
-    player_meta_table = pd.DataFrame(master_player_meta).replace('', np.nan)
-    player_stats_table = pd.DataFrame(master_player_stats).replace('', np.nan)
-
-    game_stats_table['minutes'] = game_stats_table.minutes.replace(np.nan, '00:00')
-    player_stats_table['minutes'] = player_stats_table.minutes.replace(np.nan, '00:00')
-
-    game_stats_table['minutes'] = game_stats_table.minutes.apply(time_to_minutes)
-    player_stats_table['minutes'] = player_stats_table.minutes.apply(time_to_minutes)
-
-    game_stats_table = game_stats_table.drop(columns=GAME_DUPE_COLS)
-    player_stats_table = player_stats_table.drop(columns=PLAYER_DUPE_COLS)
-
-    game_stats_table = game_stats_table.stat_type.apply(lambda s: s.upper())
+    game_meta_table, game_stats_table, team_meta_table, player_meta_table, player_stats_table = clean_tables(
+        master_game_meta, master_game_stats, master_team_meta, master_player_meta, master_player_stats
+    )
 
     tables = [game_meta_table, team_meta_table, player_meta_table, player_stats_table, game_stats_table]
     schemas = [GAMES_META_SCHEMA, TEAMS_SCHEMA, PLAYERS_SCHEMA, PLAYER_STATS_SCHEMA, GAME_STATS_SCHEMA]

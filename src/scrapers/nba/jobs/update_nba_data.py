@@ -9,7 +9,8 @@ from src.config import CONFIG_PATH
 from src.logging.logger import Logger
 from datetime import datetime
 
-from src.scrapers.nba.utils import fetch_and_save_boxscore, parse_games, date_to_dint, date_to_lookup
+from src.scrapers.nba.utils import fetch_and_save_boxscore, parse_games, date_to_dint, date_to_lookup, get_dirs, \
+    insert_parsed_data_by_day, is_date_data_complete
 
 if __name__ == "__main__":
     logger = Logger(fpath='cron_path')
@@ -58,6 +59,12 @@ if __name__ == "__main__":
 
                 for future in as_completed(futures):
                     future.result()  # Propagate exceptions if any
+
+        if is_date_data_complete(date_path, dint):
+            db = config.get('DB_PATHS', 'db_path')
+            insert_parsed_data_by_day(date_path, db, str(dint))
+        else:
+            logger.log(f'[INSERT ERROR] {dint} data not complete')
 
     else:
         logger.log(f'No games on {date}')

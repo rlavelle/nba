@@ -3,47 +3,18 @@ import os
 from datetime import datetime, timedelta
 from typing import Any, Tuple
 
+import numpy as np
 import pandas as pd
 
+from src.db.schema import GAMES_META_SCHEMA, TEAMS_SCHEMA, PLAYERS_SCHEMA, GAME_STATS_SCHEMA, PLAYER_STATS_SCHEMA
+from src.db.utils import insert_table
 from src.logging.logger import Logger
+from src.scrapers.nba.constants import N_STAT_TYPES, SEASON_TYPE_MAP, PLAYER_DUPE_COLS, GAME_DUPE_COLS
 from src.scrapers.nba.nba_stats_api import NBAStatsApi
-from src.types.game_types import SeasonType, StatType
-from src.types.nba_api_types import RawPlayerData, PlayerStats, RawGameMeta, GameMeta, RawTeamMeta, RawTeamData, \
+from src.types.game_types import StatType
+from src.types.nba_types import RawPlayerData, PlayerStats, RawGameMeta, GameMeta, RawTeamData, \
     TeamMeta, RawGameStats, GameStats, PlayerMeta
 
-N_STAT_TYPES = 7 # number of types of stats pulled per game
-
-SEASON_TYPE_MAP = {
-    'Regular Season': SeasonType.REGULAR,
-    'Playoffs': SeasonType.PLAYOFFS,
-    'All-Star': SeasonType.ALL_STAR,
-    'Preseason': SeasonType.PRESEASON,
-    'Summer League': SeasonType.SUMMER_LEAGUE,
-    'PlayIn': SeasonType.PLAY_IN,
-    'IST Championship': SeasonType.IST_CHAMPIONSHIP
-}
-
-PLAYER_DUPE_COLS = [
-    "percentagePoints",
-    "percentageFieldGoalsMade",
-    "percentageFieldGoalsAttempted",
-    "percentageThreePointersMade",
-    "percentageThreePointersAttempted",
-    "percentageFreeThrowsMade",
-    "percentageFreeThrowsAttempted",
-    "percentageReboundsOffensive",
-    "percentageReboundsDefensive",
-    "percentageReboundsTotal",
-    "percentageAssists",
-    "percentageTurnovers",
-    "percentageSteals",
-    "percentageBlocks",
-    "percentageBlocksAllowed"
-]
-
-GAME_DUPE_COLS = [
-    "estimatedTeamTurnoverPercentage"  # Same as teamTurnoverPercentage
-]
 
 def parse_boxscore(score:dict[str]) -> dict[str]:
     metric = list(score.keys())[1]
@@ -301,3 +272,65 @@ def parse_dumped_game_data(game_dir:str, dint:int, game_id:str)\
     game_stats = list(game_stats_dict.values())
 
     return game_meta, game_stats, player_data, player_stats, team_data
+
+
+def clean_tables(game_meta, game_stats, team_meta, player_meta, player_stats):
+    game_meta_table = pd.DataFrame(game_meta).replace('', np.nan)
+    game_stats_table = pd.DataFrame(game_stats).replace('', np.nan)
+    team_meta_table = pd.DataFrame(team_meta).replace('', np.nan)
+    player_meta_table = pd.DataFrame(player_meta).replace('', np.nan)
+    player_stats_table = pd.DataFrame(player_stats).replace('', np.nan)
+
+    game_stats_table['minutes'] = game_stats_table.minutes.replace(np.nan, '00:00')
+    player_stats_table['minutes'] = player_stats_table.minutes.replace(np.nan, '00:00')
+
+    game_stats_table['minutes'] = game_stats_table.minutes.apply(time_to_minutes)
+    player_stats_table['minutes'] = player_stats_table.minutes.apply(time_to_minutes)
+
+    game_stats_table = game_stats_table.drop(columns=GAME_DUPE_COLS, errors='ignore')
+    player_stats_table = player_stats_table.drop(columns=PLAYER_DUPE_COLS, errors='ignore')
+
+    game_stats_table = game_stats_table.stat_type.apply(lambda s: s.upper())
+
+    return game_meta_table, game_stats_table, team_meta_table, player_meta_table, player_stats_table
+
+
+def insert_parsed_data_by_day(games_folder:str, db:str, date:str):
+    seen_players = set()
+    seen_teams = set()
+
+    master_player_meta = []
+    master_player_stats = []
+    master_team_meta = []
+    master_game_meta = []
+    master_game_stats = []
+
+    games = get_dirs(os.path.join(games_folder, date))
+    for game in games:
+        path = os.path.join(games_folder, date, game)
+        game_meta, game_stats, player_data, player_stats, team_data = parse_dumped_game_data(path, int(date), game)
+
+        for pdata in player_data:
+            if not pdata['player_id'] in seen_players:
+                master_player_meta.append(pdata)
+                seen_players.add(pdata['player_id'])
+
+        for tdata in team_data:
+            if not tdata['team_id'] in seen_teams:
+                master_team_meta.append(tdata)
+                seen_teams.add(tdata['team_id'])
+
+        master_player_stats.extend(player_stats)
+        master_game_stats.extend(game_stats)
+        master_game_meta.append(game_meta)
+
+    game_meta_table, game_stats_table, team_meta_table, player_meta_table, player_stats_table = clean_tables(
+        master_game_meta, master_game_stats, master_team_meta, master_player_meta, master_player_stats
+    )
+
+    tables = [game_meta_table, team_meta_table, player_meta_table, player_stats_table, game_stats_table]
+    schemas = [GAMES_META_SCHEMA, TEAMS_SCHEMA, PLAYERS_SCHEMA, PLAYER_STATS_SCHEMA, GAME_STATS_SCHEMA]
+    names = ['games', 'teams', 'players', 'player_stats', 'game_stats']
+
+    for table, schema, name in zip(tables, schemas, names):
+        insert_table(table, schema, name, db, drop=False)
