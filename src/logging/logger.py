@@ -5,11 +5,11 @@ from src.logging.email_sender import EmailSender
 
 
 class Logger:
-    def __init__(self):
+    def __init__(self, fpath='path'):
         self.config = configparser.ConfigParser()
         self.config.read(CONFIG_PATH)
 
-        self.filename = self.config.get('LOG_PATH', 'path')
+        self.filename = self.config.get('LOG_PATH', fpath)
 
     def log(self, message, email=False):
         timestamp = datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')
