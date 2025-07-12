@@ -6,6 +6,7 @@ from typing import Any, Tuple
 import numpy as np
 import pandas as pd
 
+from src.db.constants import SCHEMAS
 from src.db.schema import GAMES_META_SCHEMA, TEAMS_SCHEMA, PLAYERS_SCHEMA, GAME_STATS_SCHEMA, PLAYER_STATS_SCHEMA
 from src.db.utils import insert_table
 from src.logging.logger import Logger
@@ -154,7 +155,7 @@ def fmt_game_data(game: RawGameMeta, dint:int, game_id: str) -> GameMeta:
         'game_id': game_id,
         'season': game['meta']['season_yr'],
         'season_type': game['meta']['season_type'],
-        'season_type_code': SEASON_TYPE_MAP[game['meta']['season_type']],
+        'season_type_code': SEASON_TYPE_MAP[game['meta']['season_type']].value,
         'dint': dint,
         'date': datetime.strptime(str(dint), '%Y%m%d'),
     }
@@ -241,19 +242,19 @@ def parse_dumped_game_data(game_dir:str, dint:int, game_id:str)\
 
                         key = str(game_id) + '_' + str(team_id) + '_' + stat_type
                         if key in game_stats_dict:
-                            game_stats_dict[key] = team[stat_type] | game_stats_dict[key]
+                            game_stats_dict[key] = team[stat_type.value] | game_stats_dict[key]
                         else:
-                            game_stats_dict[key] = team[stat_type]
+                            game_stats_dict[key] = team[stat_type.value]
                             game_stats_dict[key]['game_id'] = game_id
                             game_stats_dict[key]['team_id'] = team_id
                             game_stats_dict[key]['is_home'] = is_home
-                            game_stats_dict[key]['stat_type'] = stat_type
+                            game_stats_dict[key]['stat_type'] = stat_type.value
 
                 # player stats
                 for player in players:
                     pdata = fmt_player_data(player)
 
-                    if StatType.TOTAL not in player:
+                    if StatType.TOTAL.value not in player:
                         continue
 
                     pid = pdata['player_id']
@@ -290,7 +291,7 @@ def clean_tables(game_meta, game_stats, team_meta, player_meta, player_stats):
     game_stats_table = game_stats_table.drop(columns=GAME_DUPE_COLS, errors='ignore')
     player_stats_table = player_stats_table.drop(columns=PLAYER_DUPE_COLS, errors='ignore')
 
-    game_stats_table = game_stats_table.stat_type.apply(lambda s: s.upper())
+    game_stats_table['stat_type'] = game_stats_table.stat_type.apply(lambda s: s.upper())
 
     return game_meta_table, game_stats_table, team_meta_table, player_meta_table, player_stats_table
 
@@ -305,9 +306,9 @@ def insert_parsed_data_by_day(games_folder:str, db:str, date:str):
     master_game_meta = []
     master_game_stats = []
 
-    games = get_dirs(os.path.join(games_folder, date))
+    games = get_dirs(os.path.join(games_folder))
     for game in games:
-        path = os.path.join(games_folder, date, game)
+        path = os.path.join(games_folder, game)
         game_meta, game_stats, player_data, player_stats, team_data = parse_dumped_game_data(path, int(date), game)
 
         for pdata in player_data:
@@ -329,8 +330,7 @@ def insert_parsed_data_by_day(games_folder:str, db:str, date:str):
     )
 
     tables = [game_meta_table, team_meta_table, player_meta_table, player_stats_table, game_stats_table]
-    schemas = [GAMES_META_SCHEMA, TEAMS_SCHEMA, PLAYERS_SCHEMA, PLAYER_STATS_SCHEMA, GAME_STATS_SCHEMA]
     names = ['games', 'teams', 'players', 'player_stats', 'game_stats']
 
-    for table, schema, name in zip(tables, schemas, names):
+    for table, schema, name in zip(tables, SCHEMAS, names):
         insert_table(table, schema, name, db, drop=False)

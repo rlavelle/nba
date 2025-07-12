@@ -10,10 +10,14 @@ from src.logging.logger import Logger
 
 
 class NBAStatsApi:
-    def __init__(self):
+    def __init__(self, logger=None):
         self.config = configparser.ConfigParser()
         self.config.read(CONFIG_PATH)
-        self.logger = Logger()
+
+        if logger:
+            self.logger = logger
+        else:
+            self.logger = Logger()
 
     def get_boxscore(self, game_id:str, endpoint:str, period:str) -> dict[str]:
         assert endpoint in self.config.options('NBA_STATS_ENDPOINTS'), f'{endpoint} not in valid endpoints'

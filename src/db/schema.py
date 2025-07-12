@@ -1,7 +1,7 @@
 TEAMS_SCHEMA = """
 DROP TABLE IF EXISTS teams;
 CREATE TABLE IF NOT EXISTS teams (
-    team_id INTEGER,
+    team_id INTEGER NOT NULL,
     team_name TEXT,
     team_slug TEXT,
     PRIMARY KEY (team_id)
@@ -10,7 +10,7 @@ CREATE TABLE IF NOT EXISTS teams (
 PLAYERS_SCHEMA = """
 DROP TABLE IF EXISTS players;
 CREATE TABLE IF NOT EXISTS players (
-    player_id INTEGER,
+    player_id INTEGER NOT NULL,
     player_name TEXT,
     player_slug TEXT,
     PRIMARY KEY (player_id)
@@ -19,215 +19,216 @@ CREATE TABLE IF NOT EXISTS players (
 GAMES_META_SCHEMA = """
 DROP TABLE IF EXISTS games;
 CREATE TABLE IF NOT EXISTS games (
-    game_id TEXT,
+    game_id TEXT NOT NULL,
     season TEXT,
     season_type TEXT,
     season_type_code TEXT,
     dint INTEGER,
-    date DATETIME,
+    date TIMESTAMP,
     home_team INTEGER,
     away_team INTEGER,
     PRIMARY KEY (game_id)
 );"""
 
 PLAYER_STATS_SCHEMA = """
-DROP TABLE IF EXISTS player_stats;
-CREATE TABLE IF NOT EXISTS player_stats (
-    -- Identifiers
-    player_id INTEGER,
-    team_id INTEGER,
-    game_id TEXT,
-    position TEXT,
+DROP TABLE IF EXISTS "player_stats";
+CREATE TABLE IF NOT EXISTS "player_stats" (
+    "player_id" INTEGER NOT NULL,
+    "team_id" INTEGER NOT NULL,
+    "game_id" TEXT NOT NULL,
+    "position" TEXT,
 
-    -- Minutes Played
-    minutes FLOAT,
+    "minutes" FLOAT,
 
-    -- Box Score: Shooting
-    fieldGoalsMade INTEGER,
-    fieldGoalsAttempted INTEGER,
-    fieldGoalsPercentage FLOAT,
-    threePointersMade INTEGER,
-    threePointersAttempted INTEGER,
-    threePointersPercentage FLOAT,
-    freeThrowsMade INTEGER,
-    freeThrowsAttempted INTEGER,
-    freeThrowsPercentage FLOAT,
+    "fieldGoalsMade" INTEGER,
+    "fieldGoalsAttempted" INTEGER,
+    "fieldGoalsPercentage" FLOAT,
+    "threePointersMade" INTEGER,
+    "threePointersAttempted" INTEGER,
+    "threePointersPercentage" FLOAT,
+    "freeThrowsMade" INTEGER,
+    "freeThrowsAttempted" INTEGER,
+    "freeThrowsPercentage" FLOAT,
 
-    -- Box Score: Rebounding
-    reboundsOffensive INTEGER,
-    reboundsDefensive INTEGER,
-    reboundsTotal INTEGER,
+    "reboundsOffensive" INTEGER,
+    "reboundsDefensive" INTEGER,
+    "reboundsTotal" INTEGER,
 
-    -- Box Score: Playmaking / Defense
-    assists INTEGER,
-    steals INTEGER,
-    blocks INTEGER,
-    blocksAgainst INTEGER,
-    turnovers INTEGER,
-    foulsPersonal INTEGER,
-    foulsDrawn INTEGER,
+    "assists" INTEGER,
+    "steals" INTEGER,
+    "blocks" INTEGER,
+    "blocksAgainst" INTEGER,
+    "turnovers" INTEGER,
+    "foulsPersonal" INTEGER,
+    "foulsDrawn" INTEGER,
 
-    -- Box Score: Scoring
-    points INTEGER,
-    plusMinusPoints FLOAT,
+    "points" INTEGER,
+    "plusMinusPoints" FLOAT,
 
-    -- Advanced Ratings
-    offensiveRating FLOAT,
-    estimatedOffensiveRating FLOAT,
-    defensiveRating FLOAT,
-    estimatedDefensiveRating FLOAT,
-    netRating FLOAT,
-    estimatedNetRating FLOAT,
+    "offensiveRating" FLOAT,
+    "estimatedOffensiveRating" FLOAT,
+    "defensiveRating" FLOAT,
+    "estimatedDefensiveRating" FLOAT,
+    "netRating" FLOAT,
+    "estimatedNetRating" FLOAT,
 
-    -- Assist / Turnover Efficiency
-    assistPercentage FLOAT,
-    assistToTurnover FLOAT,
-    assistRatio FLOAT,
-    turnoverRatio FLOAT,
+    "assistPercentage" FLOAT,
+    "assistToTurnover" FLOAT,
+    "assistRatio" FLOAT,
+    "turnoverRatio" FLOAT,
 
-    -- Rebound Efficiency
-    offensiveReboundPercentage FLOAT,
-    defensiveReboundPercentage FLOAT,
-    reboundPercentage FLOAT,
+    "offensiveReboundPercentage" FLOAT,
+    "defensiveReboundPercentage" FLOAT,
+    "reboundPercentage" FLOAT,
 
-    -- Shooting Efficiency
-    effectiveFieldGoalPercentage FLOAT,
-    trueShootingPercentage FLOAT,
+    "effectiveFieldGoalPercentage" FLOAT,
+    "trueShootingPercentage" FLOAT,
 
-    -- Usage and Pace
-    usagePercentage FLOAT,
-    estimatedUsagePercentage FLOAT,
-    pace FLOAT,
-    estimatedPace FLOAT,
-    pacePer40 FLOAT,
-    possessions FLOAT,
+    "usagePercentage" FLOAT,
+    "estimatedUsagePercentage" FLOAT,
+    "pace" FLOAT,
+    "estimatedPace" FLOAT,
+    "pacePer40" FLOAT,
+    "possessions" FLOAT,
 
-    -- Player Impact
-    PIE FLOAT,
+    "PIE" FLOAT,
 
-    -- Scoring Breakdown: Shot Selection (Attempts)
-    percentageFieldGoalsAttempted2pt FLOAT,
-    percentageFieldGoalsAttempted3pt FLOAT,
-    
-    -- Scoring Breakdown: Point Contribution
-    percentagePoints2pt FLOAT,
-    percentagePointsMidrange2pt FLOAT,
-    percentagePoints3pt FLOAT,
-    percentagePointsFastBreak FLOAT,
-    percentagePointsFreeThrow FLOAT,
-    percentagePointsOffTurnovers FLOAT,
-    percentagePointsPaint FLOAT,
-    
-    -- Scoring Breakdown: FT Aggressiveness
-    freeThrowAttemptRate FLOAT,
+    "percentageFieldGoalsAttempted2pt" FLOAT,
+    "percentageFieldGoalsAttempted3pt" FLOAT,
 
-    -- Assist Types
-    percentageAssisted2pt FLOAT,
-    percentageUnassisted2pt FLOAT,
-    percentageAssisted3pt FLOAT,
-    percentageUnassisted3pt FLOAT,
-    percentageAssistedFGM FLOAT,
-    percentageUnassistedFGM FLOAT,
+    "percentagePoints2pt" FLOAT,
+    "percentagePointsMidrange2pt" FLOAT,
+    "percentagePoints3pt" FLOAT,
+    "percentagePointsFastBreak" FLOAT,
+    "percentagePointsFreeThrow" FLOAT,
+    "percentagePointsOffTurnovers" FLOAT,
+    "percentagePointsPaint" FLOAT,
 
-    -- Point Sources
-    pointsOffTurnovers INTEGER,
-    pointsSecondChance INTEGER,
-    pointsFastBreak INTEGER,
-    pointsPaint INTEGER,
-    oppPointsOffTurnovers INTEGER,
-    oppPointsSecondChance INTEGER,
-    oppPointsFastBreak INTEGER,
-    oppPointsPaint INTEGER,
+    "freeThrowAttemptRate" FLOAT,
 
-    -- Opponent Defense Metrics
-    oppEffectiveFieldGoalPercentage FLOAT,
-    oppFreeThrowAttemptRate FLOAT,
-    oppTeamTurnoverPercentage FLOAT,
-    oppOffensiveReboundPercentage FLOAT,
+    "percentageAssisted2pt" FLOAT,
+    "percentageUnassisted2pt" FLOAT,
+    "percentageAssisted3pt" FLOAT,
+    "percentageUnassisted3pt" FLOAT,
+    "percentageAssistedFGM" FLOAT,
+    "percentageUnassistedFGM" FLOAT,
 
-    -- Team-level Contribution Metrics
-    teamTurnoverPercentage FLOAT,
+    "pointsOffTurnovers" INTEGER,
+    "pointsSecondChance" INTEGER,
+    "pointsFastBreak" INTEGER,
+    "pointsPaint" INTEGER,
+    "oppPointsOffTurnovers" INTEGER,
+    "oppPointsSecondChance" INTEGER,
+    "oppPointsFastBreak" INTEGER,
+    "oppPointsPaint" INTEGER,
 
-    -- Fouls/Impact
-    percentagePersonalFouls FLOAT,
-    percentagePersonalFoulsDrawn FLOAT,
+    "oppEffectiveFieldGoalPercentage" FLOAT,
+    "oppFreeThrowAttemptRate" FLOAT,
+    "oppTeamTurnoverPercentage" FLOAT,
+    "oppOffensiveReboundPercentage" FLOAT,
 
-    -- Primary Key
-    PRIMARY KEY (game_id, player_id)
+    "teamTurnoverPercentage" FLOAT,
+
+    "percentagePersonalFouls" FLOAT,
+    "percentagePersonalFoulsDrawn" FLOAT,
+
+    PRIMARY KEY ("game_id", "team_id", "player_id")
 );
 """
 
 GAME_STATS_SCHEMA = """
-DROP TABLE IF EXISTS game_stats;
-CREATE TABLE IF NOT EXISTS game_stats (
-    -- Identifiers
-    game_id TEXT,
-    team_id INTEGER,
-    is_home BOOLEAN,       -- 1 if home, 0 if away
-    stat_type TEXT,        -- 'starters', 'bench', or 'statistics'
+DROP TABLE IF EXISTS "game_stats";
+CREATE TABLE IF NOT EXISTS "game_stats" (
+    "game_id" TEXT NOT NULL,
+    "team_id" INTEGER NOT NULL,
+    "is_home" BOOLEAN NOT NULL,
+    "stat_type" TEXT NOT NULL,
 
-    -- Minutes (team total, e.g., 240:00)
-    minutes FLOAT,
+    "minutes" FLOAT,
 
-    -- Shooting
-    fieldGoalsMade INTEGER,
-    fieldGoalsAttempted INTEGER,
-    fieldGoalsPercentage FLOAT,
-    threePointersMade INTEGER,
-    threePointersAttempted INTEGER,
-    threePointersPercentage FLOAT,
-    freeThrowsMade INTEGER,
-    freeThrowsAttempted INTEGER,
-    freeThrowsPercentage FLOAT,
+    "pointsOffTurnovers" FLOAT,
+    "pointsSecondChance" FLOAT,
+    "pointsFastBreak" FLOAT,
+    "pointsPaint" FLOAT,
 
-    -- Rebounding
-    reboundsOffensive INTEGER,
-    reboundsDefensive INTEGER,
-    reboundsTotal INTEGER,
+    "oppPointsOffTurnovers" FLOAT,
+    "oppPointsSecondChance" FLOAT,
+    "oppPointsFastBreak" FLOAT,
+    "oppPointsPaint" FLOAT,
 
-    -- Playmaking / Defense
-    assists INTEGER,
-    steals INTEGER,
-    blocks INTEGER,
-    turnovers INTEGER,
-    foulsPersonal INTEGER,
-    foulsDrawn INTEGER,
+    "fieldGoalsMade" INTEGER,
+    "fieldGoalsAttempted" INTEGER,
+    "fieldGoalsPercentage" FLOAT,
+    "threePointersMade" INTEGER,
+    "threePointersAttempted" INTEGER,
+    "threePointersPercentage" FLOAT,
+    "freeThrowsMade" INTEGER,
+    "freeThrowsAttempted" INTEGER,
+    "freeThrowsPercentage" FLOAT,
 
-    -- Scoring
-    points INTEGER,
-    plusMinusPoints FLOAT,
+    "reboundsOffensive" INTEGER,
+    "reboundsDefensive" INTEGER,
+    "reboundsTotal" INTEGER,
 
-    -- Advanced Efficiency
-    effectiveFieldGoalPercentage FLOAT,
-    trueShootingPercentage FLOAT,
-    usagePercentage FLOAT,
-    estimatedUsagePercentage FLOAT,
-    offensiveRating FLOAT,
-    estimatedOffensiveRating FLOAT,
-    defensiveRating FLOAT,
-    estimatedDefensiveRating FLOAT,
-    netRating FLOAT,
-    estimatedNetRating FLOAT,
-    assistPercentage FLOAT,
-    assistToTurnover FLOAT,
-    assistRatio FLOAT,
-    turnoverRatio FLOAT,
-    offensiveReboundPercentage FLOAT,
-    defensiveReboundPercentage FLOAT,
-    reboundPercentage FLOAT,
-    freeThrowAttemptRate FLOAT,
+    "assists" INTEGER,
+    "steals" INTEGER,
+    "blocks" INTEGER,
+    "blocksAgainst" FLOAT,
+    "turnovers" INTEGER,
+    "foulsPersonal" INTEGER,
+    "foulsDrawn" INTEGER,
 
-    -- Possession / Pace
-    pace FLOAT,
-    estimatedPace FLOAT,
-    pacePer40 FLOAT,
-    possessions FLOAT,
-    PIE FLOAT,
+    "points" INTEGER,
+    "plusMinusPoints" FLOAT,
 
-    -- Opponent Defense
-    oppEffectiveFieldGoalPercentage FLOAT,
-    oppFreeThrowAttemptRate FLOAT,
-    oppTeamTurnoverPercentage FLOAT,
-    oppOffensiveReboundPercentage FLOAT
+    "effectiveFieldGoalPercentage" FLOAT,
+    "trueShootingPercentage" FLOAT,
+    "usagePercentage" FLOAT,
+    "estimatedUsagePercentage" FLOAT,
+    "offensiveRating" FLOAT,
+    "estimatedOffensiveRating" FLOAT,
+    "defensiveRating" FLOAT,
+    "estimatedDefensiveRating" FLOAT,
+    "netRating" FLOAT,
+    "estimatedNetRating" FLOAT,
+    "assistPercentage" FLOAT,
+    "assistToTurnover" FLOAT,
+    "assistRatio" FLOAT,
+    "turnoverRatio" FLOAT,
+    "teamTurnoverPercentage" FLOAT,
+    "offensiveReboundPercentage" FLOAT,
+    "defensiveReboundPercentage" FLOAT,
+    "reboundPercentage" FLOAT,
+    "freeThrowAttemptRate" FLOAT,
+
+    "pace" FLOAT,
+    "estimatedPace" FLOAT,
+    "pacePer40" FLOAT,
+    "possessions" FLOAT,
+    "PIE" FLOAT,
+
+    "oppEffectiveFieldGoalPercentage" FLOAT,
+    "oppFreeThrowAttemptRate" FLOAT,
+    "oppTeamTurnoverPercentage" FLOAT,
+    "oppOffensiveReboundPercentage" FLOAT,
+
+    "percentageFieldGoalsAttempted2pt" FLOAT,
+    "percentageFieldGoalsAttempted3pt" FLOAT,
+    "percentagePoints2pt" FLOAT,
+    "percentagePointsMidrange2pt" FLOAT,
+    "percentagePoints3pt" FLOAT,
+    "percentagePointsFastBreak" FLOAT,
+    "percentagePointsFreeThrow" FLOAT,
+    "percentagePointsOffTurnovers" FLOAT,
+    "percentagePointsPaint" FLOAT,
+
+    "percentageAssisted2pt" FLOAT,
+    "percentageUnassisted2pt" FLOAT,
+    "percentageAssisted3pt" FLOAT,
+    "percentageUnassisted3pt" FLOAT,
+    "percentageAssistedFGM" FLOAT,
+    "percentageUnassistedFGM" FLOAT,
+
+    PRIMARY KEY ("game_id", "team_id", "stat_type")
 );
 """

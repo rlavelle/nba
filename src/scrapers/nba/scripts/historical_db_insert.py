@@ -4,19 +4,19 @@ import pandas as pd
 import os
 import numpy as np
 
-from src.config import CONFIG_PATH
+from src.config import CONFIG_PATH, LOCAL
+from src.db.constants import SCHEMAS
 from src.db.utils import insert_table
 from src.scrapers.nba.utils import time_to_minutes, get_dirs, parse_dumped_game_data, clean_tables
 from src.scrapers.nba.constants import PLAYER_DUPE_COLS, GAME_DUPE_COLS
 from src.db.schema import TEAMS_SCHEMA, PLAYERS_SCHEMA, GAMES_META_SCHEMA, \
     PLAYER_STATS_SCHEMA, GAME_STATS_SCHEMA
 
-
 if __name__ == "__main__":
     config = configparser.ConfigParser()
     config.read(CONFIG_PATH)
 
-    db = config.get('DB_PATHS', 'db_path')
+    db_url = config.get('DB_PATHS', 'local_url' if LOCAL else 'prod_url')
     games_folder = config.get('DATA_PATH', 'games_folder')
 
     seen_players = set()
@@ -51,7 +51,7 @@ if __name__ == "__main__":
             master_game_stats.extend(game_stats)
             master_game_meta.append(game_meta)
         i += 1
-        if i > 100:
+        if i > 200:
             break
 
     game_meta_table, game_stats_table, team_meta_table, player_meta_table, player_stats_table = clean_tables(
@@ -59,7 +59,6 @@ if __name__ == "__main__":
     )
 
     tables = [game_meta_table, team_meta_table, player_meta_table, player_stats_table, game_stats_table]
-    schemas = [GAMES_META_SCHEMA, TEAMS_SCHEMA, PLAYERS_SCHEMA, PLAYER_STATS_SCHEMA, GAME_STATS_SCHEMA]
     names = ['games', 'teams', 'players', 'player_stats', 'game_stats']
-    for table, schema, name in zip(tables, schemas, names):
-        insert_table(table, schema, name, db, drop=True)
+    for table, schema, name in zip(tables, SCHEMAS, names):
+        insert_table(table, schema, name, db_url, drop=True)
