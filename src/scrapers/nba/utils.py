@@ -18,7 +18,7 @@ from src.types.nba_types import RawPlayerData, PlayerStats, RawGameMeta, GameMet
     TeamMeta, RawGameStats, GameStats, PlayerMeta
 
 
-def parse_boxscore(score:dict[str]) -> dict[str]:
+def parse_boxscore(score:dict[str]) -> RawGameStats:
     metric = list(score.keys())[1]
     return score[metric]
 
@@ -75,6 +75,7 @@ def get_files(dir:str) -> list[str]:
 def is_date_data_complete(dir:str, dint:int) -> bool:
     if not os.path.isdir(dir):
         return False
+
     game_file = os.path.join(dir,f'{dint}_games.json')
     if not os.path.isfile(game_file):
         return False
@@ -127,6 +128,10 @@ def fetch_and_save_boxscore(game_id:str,
     assert game_id == validate_game, f'{game_id} <> {validate_game}'
 
     fmt_game = parse_boxscore(score=score)
+    if is_bad_stat(fmt_game):
+        logger.log(f'[EMPTY GAME DATA] {game_id} {stat_type_fpath}')
+        return
+
     json.dump(fmt_game, open(stat_type_fpath, 'w'))
 
     msg = f"[SUCCESS] {game_id}/{boxscore}"
@@ -172,6 +177,10 @@ def fmt_team_data(team: RawTeamData) -> TeamMeta:
         'team_name': team['teamName'],
         'team_slug': team['teamTricode']
     }
+
+
+def is_empty_game(game: RawGameMeta) -> bool:
+    return game['home']['score'] == 0 and game['away']['score'] == 0
 
 
 def is_bad_game(game: RawGameMeta) -> bool:

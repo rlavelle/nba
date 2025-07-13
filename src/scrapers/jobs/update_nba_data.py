@@ -11,23 +11,25 @@ from src.logging.logger import Logger
 from datetime import datetime, timedelta
 
 from src.scrapers.nba.utils import fetch_and_save_boxscore, parse_games, date_to_dint, date_to_lookup, get_dirs, \
-    insert_parsed_data_by_day, is_date_data_complete, is_game_data_complete
+    insert_parsed_data_by_day, is_date_data_complete, is_game_data_complete, is_bad_game, is_empty_game
+
 
 def update_nba_data():
     start = time.time()
+
     logger = Logger(fpath='cron_path')
     api = NBAStatsApi(logger=logger)
-
     config = configparser.ConfigParser()
     config.read(CONFIG_PATH)
-    data_path = config.get('DATA_PATH', 'games_folder')
 
+    data_path = config.get('DATA_PATH', 'games_folder')
     boxscores = config.options('NBA_STATS_ENDPOINTS')
 
-    date  = datetime.now() - timedelta(days=3)  # datetime.today()
-    logger.log(f'[SCRAPE FOR {date}]')
+    date  = datetime.today()
     lookup = date_to_lookup(date)
     dint = date_to_dint(date)
+
+    logger.log(f'[SCRAPE FOR {date}]')
 
     date_path = os.path.join(data_path, str(dint))
     if is_date_data_complete(date_path, dint):
@@ -55,6 +57,14 @@ def update_nba_data():
             futures = []
             for game_id, v in fmt_games.items():
                 game_path = os.path.join(date_path, f'{game_id}')
+
+                if is_bad_game(v):
+                    logger.log(f'[ERROR IN GAME]: {game_id}\n{v}')
+                    continue
+
+                if is_empty_game(v):
+                    logger.log(f'[EMPTY GAME]: {game_id}\n{v}')
+                    continue
 
                 if is_game_data_complete(game_path):
                     logger.log(f'skipping {dint}-{game_id}... data pulled')
@@ -85,7 +95,7 @@ def update_nba_data():
             logger.log(f'[ERROR ON PARSE]: {e}')
 
     else:
-        logger.log(f'[ERROR IN SCRAPE]: Not all data collected')
+        logger.log(f'[ERROR IN SCRAPE]: Not all data collected, check logs')
 
 
 if __name__ == "__main__":
