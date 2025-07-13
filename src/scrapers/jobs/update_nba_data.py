@@ -95,7 +95,10 @@ def update_nba_data():
             logger.log(f'[ERROR ON PARSE]: {e}')
 
     else:
-        logger.log(f'[ERROR IN SCRAPE]: Not all data collected, check logs')
+        if len(os.listdir(date_path)) == 1:
+            logger.log(f'[EMPTY GAME DATA]: see future games {date_path}/{dint}_games.json')
+        else:
+            logger.log(f'[ERROR IN SCRAPE]: Not all data collected, check logs')
 
 
 if __name__ == "__main__":
