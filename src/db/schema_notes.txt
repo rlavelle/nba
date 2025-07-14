@@ -1,0 +1,137 @@
+player_stats table — One row per player per game per team
+---------------------------------------------------------
+player_id                    Unique player identifier.
+team_id                      ID of the team the player played for in the game.
+game_id                      Unique game identifier.
+position                     Player's listed position.
+minutes                      Minutes played (converted to float).
+
+Shooting
+--------
+fieldGoalsMade               Total field goals made.
+fieldGoalsAttempted          Total field goals attempted.
+fieldGoalsPercentage         Field goal percentage.
+threePointersMade            3-point shots made.
+threePointersAttempted       3-point shots attempted.
+threePointersPercentage      3-point shooting percentage.
+freeThrowsMade               Free throws made.
+freeThrowsAttempted          Free throws attempted.
+freeThrowsPercentage         Free throw percentage.
+
+Rebounds
+--------
+reboundsOffensive            Offensive rebounds.
+reboundsDefensive            Defensive rebounds.
+reboundsTotal                Total rebounds.
+
+Core Stats
+----------
+assists                      Assists recorded.
+steals                       Steals recorded.
+blocks                       Blocks recorded.
+blocksAgainst                Times blocked by opponents.
+turnovers                    Turnovers committed.
+foulsPersonal                Personal fouls committed.
+foulsDrawn                   Fouls drawn from opponents.
+points                       Total points scored.
+plusMinusPoints              On/off point differential while on court.
+
+Advanced Ratings
+----------------
+offensiveRating              Offensive efficiency (points per 100 possessions).
+estimatedOffensiveRating     Estimated offensive rating.
+defensiveRating              Defensive efficiency (points allowed per 100 possessions).
+estimatedDefensiveRating     Estimated defensive rating.
+netRating                    Net rating (offensive - defensive).
+estimatedNetRating           Estimated net rating.
+
+Possession-Based Metrics
+------------------------
+usagePercentage              % of team possessions used by the player.
+estimatedUsagePercentage     Estimated usage %.
+pace                         Possessions per 48 minutes.
+estimatedPace                Estimated pace.
+pacePer40                    Possessions per 40 minutes.
+possessions                  Estimated possessions while on court.
+
+Efficiency Ratios
+-----------------
+assistPercentage             % of teammate FGs assisted by this player.
+assistToTurnover             Assists divided by turnovers.
+assistRatio                  Assists per 100 possessions.
+turnoverRatio                Turnovers per 100 possessions.
+
+Rebounding Rates
+----------------
+offensiveReboundPercentage   % of available offensive rebounds grabbed.
+defensiveReboundPercentage   % of available defensive rebounds grabbed.
+reboundPercentage            Total rebound rate.
+
+Scoring Efficiency
+------------------
+effectiveFieldGoalPercentage Adjusts FG% for 3PT weight.
+trueShootingPercentage       Includes FTs and 3PTs for scoring efficiency.
+
+Scoring Distribution
+---------------------
+percentageFieldGoalsAttempted2pt  % of FGAs that were 2PT.
+percentageFieldGoalsAttempted3pt  % of FGAs that were 3PT.
+percentagePoints2pt               % of points from 2PT.
+percentagePointsMidrange2pt       % of points from midrange 2PT.
+percentagePoints3pt               % of points from 3PT.
+percentagePointsFastBreak         % of points from fast break.
+percentagePointsFreeThrow         % of points from free throws.
+percentagePointsOffTurnovers      % of points from opponent turnovers.
+percentagePointsPaint             % of points scored in the paint.
+
+Shooting Creation
+-----------------
+freeThrowAttemptRate         Free throw attempts per FGA.
+percentageAssisted2pt        % of 2PT FGs that were assisted.
+percentageUnassisted2pt      % of 2PT FGs that were unassisted.
+percentageAssisted3pt        % of 3PT FGs that were assisted.
+percentageUnassisted3pt      % of 3PT FGs that were unassisted.
+percentageAssistedFGM        % of all FGs that were assisted.
+percentageUnassistedFGM      % of all FGs that were unassisted.
+
+Scoring Breakdown (Team & Opponent)
+-----------------------------------
+pointsOffTurnovers           Points off opponent turnovers.
+pointsSecondChance           Points off offensive rebounds.
+pointsFastBreak              Fast break points.
+pointsPaint                  Points in the paint.
+oppPointsOffTurnovers        Points allowed off turnovers.
+oppPointsSecondChance        Points allowed on second chances.
+oppPointsFastBreak           Fast break points allowed.
+oppPointsPaint               Points allowed in the paint.
+
+Opponent Defense Metrics
+------------------------
+oppEffectiveFieldGoalPercentage  Opponent eFG%.
+oppFreeThrowAttemptRate          Opponent FTA rate.
+oppTeamTurnoverPercentage        Opponent TOV%.
+oppOffensiveReboundPercentage    Opponent OREB%.
+
+Team Turnover Rate
+------------------
+teamTurnoverPercentage       Team turnover percentage while on court.
+
+Foul Rates
+----------
+percentagePersonalFouls      % of total fouls committed by this player.
+percentagePersonalFoulsDrawn % of total fouls drawn by this player.
+
+-------------------------------------------------------------------
+
+game_stats table — One row per team per game per stat type (TOTAL, STARTERS, BENCH)
+-----------------------------------------------------------------------------------
+game_id                      Unique identifier for the game.
+team_id                      ID of the team.
+is_home                      Whether the team played at home.
+stat_type                    One of: TOTAL, STARTERS, BENCH.
+
+Remaining fields:
+- Identical in definition to player_stats equivalents.
+- All fields are team-level aggregates or per-possession metrics.
+- Same naming, same meaning, just aggregated at the team level.
+

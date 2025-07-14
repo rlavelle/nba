@@ -1,3 +1,16 @@
+ERROR_LOG_SCHEMA = """
+DROP TABLE IF EXISTS errors;
+CREATE TABLE IF NOT EXISTS errors (
+    task_id INTEGER NOT NULL,
+    game_id TEXT,
+    team_id INTEGER,
+    player_id INTEGER,
+    time TIMESTAMP,
+    msg TEXT,
+    PRIMARY KEY (task_id)
+);
+"""
+
 TEAMS_SCHEMA = """
 DROP TABLE IF EXISTS teams;
 CREATE TABLE IF NOT EXISTS teams (
@@ -25,8 +38,6 @@ CREATE TABLE IF NOT EXISTS games (
     season_type_code TEXT,
     dint INTEGER,
     date TIMESTAMP,
-    home_team INTEGER,
-    away_team INTEGER,
     PRIMARY KEY (game_id)
 );"""
 

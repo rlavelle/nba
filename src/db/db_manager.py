@@ -58,7 +58,7 @@ class DBManager:
         query = f"SELECT * FROM game_stats WHERE stat_type = '{stat_type.value}';"
         return self.execute_query(query)
 
-    def get_player_id(self, player_slug:str) -> pd.DataFrame:
+    def get_player_id(self, player_slug:str) -> int:
         query = f"SELECT * FROM players WHERE player_slug = '{player_slug}';"
         player = self.execute_query(query)
 
@@ -67,7 +67,7 @@ class DBManager:
 
         return player['player_id'].values[0]
 
-    def get_team_id(self, team_name:str) -> pd.DataFrame:
+    def get_team_id(self, team_name:str) -> int:
         query = f"SELECT * FROM teams WHERE team_name = '{team_name}';"
         team = self.execute_query(query)
 
