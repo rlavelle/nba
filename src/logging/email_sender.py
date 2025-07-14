@@ -47,24 +47,25 @@ class EmailSender:
         if not self.recipients:
             raise ValueError("No recipients. Please add recipients using read_recipients_from_file or add_recipient.")
 
-        msg = MIMEMultipart()
-        msg['From'] = self.sender_email
-        msg['To'] = ", ".join(self.recipients)
-        msg['Subject'] = self.subject
-
-        msg.attach(MIMEText(self.body, 'plain'))
-
-        for attachment in self.attachments:
-            with open(attachment, 'rb') as file:
-                part = MIMEApplication(file.read(), Name=attachment.split('/')[-1])
-                part['Content-Disposition'] = f'attachment; filename="{attachment.split("/")[-1]}"'
-                msg.attach(part)
-
         with smtplib.SMTP(self.smtp_server, self.smtp_port) as server:
             server.starttls()
             server.login(self.sender_email, self.sender_password)
-            server.sendmail(self.sender_email, self.recipients, msg.as_string())
 
+            for recipient in self.recipients:
+                msg = MIMEMultipart()
+                msg['From'] = self.sender_email
+                msg['To'] = recipient
+                msg['Subject'] = self.subject
+
+                msg.attach(MIMEText(self.body, 'plain'))
+
+                for attachment in self.attachments:
+                    with open(attachment, 'rb') as file:
+                        part = MIMEApplication(file.read(), Name=attachment.split('/')[-1])
+                        part['Content-Disposition'] = f'attachment; filename="{attachment.split("/")[-1]}"'
+                        msg.attach(part)
+
+                server.sendmail(self.sender_email, recipient, msg.as_string())
 
 if __name__ == "__main__":
     email_sender = EmailSender()
