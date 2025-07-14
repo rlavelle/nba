@@ -1,7 +1,7 @@
 import pickle
 from xgboost import XGBRegressor
-from src.models.model import Model
-from src.models.model import BaseModel
+from src.models.framework.model import Model
+from src.models.framework.model import BaseModel
 
 
 class XGBModel(Model):
@@ -20,10 +20,5 @@ class XGBModel(Model):
             pickle.dump(self, f)
 
 class XGBWrapper(BaseModel):
-    def build_model(self):
-        self.model = XGBModel(
-            n_estimators=100,
-            max_depth=4,
-            learning_rate=0.1,
-            objective='reg:squarederror'
-        )
+    def build_model(self, **kwargs):
+        self.model = XGBModel(**kwargs)

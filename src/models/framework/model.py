@@ -22,6 +22,7 @@ class Model(ABC):
     def save(self, fpath):
         pickle.dump(self, open(fpath, 'wb'))
 
+
 class BaseModel(ABC):
     def __init__(self, name: str, load=False):
         self.name = name
@@ -33,13 +34,13 @@ class BaseModel(ABC):
 
         if load:
             assert os.path.exists(os.path.join(self.model_path, name)), f'{os.path.join(self.model_path, name)} does not exist'
-            self.model = pickle.load(open(os.path.join(self.model_path, self.name), 'rb'))
+            self.load()
 
     def __str__(self):
         return self.name
 
     @abstractmethod
-    def build_model(self):
+    def build_model(self, **kwargs):
         pass
 
     def train(self, X_train, y_train):
@@ -52,29 +53,8 @@ class BaseModel(ABC):
         preds = self.predict(X_val)
         return metric_fn(y_val, preds)
 
-    def grid_search(self, X_train, y_train, X_val, y_val, param_grid: dict, metric_fn):
-        best_score = float('inf')
-        best_params = None
-        best_model = None
-
-        keys, values = zip(*param_grid.items())
-        for combination in product(*values):
-            params = dict(zip(keys, combination))
-
-            self.build_model(**params)
-            self.train(X_train, y_train)
-            score = self.evaluate(X_val, y_val, metric_fn)
-
-            print(f"[GRID] Params: {params} => Score: {score:.4f}")
-
-            if score < best_score:
-                best_score = score
-                best_params = params
-                best_model = pickle.loads(pickle.dumps(self.model))  # Deep copy current model
-
-        self.model = best_model
-        print(f"[BEST] Params: {best_params} => Score: {best_score:.4f}")
-        return best_params, best_score
-
     def save(self):
         self.model.save(os.path.join(self.model_path, self.name))
+
+    def load(self):
+        self.model = pickle.load(open(os.path.join(self.model_path, self.name), 'rb'))
