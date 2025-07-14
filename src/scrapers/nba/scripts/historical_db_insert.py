@@ -4,8 +4,9 @@ from src.config import CONFIG_PATH, LOCAL
 from src.db.constants import SCHEMAS
 from src.db.utils import insert_table
 from src.logging.logger import Logger
-from src.scrapers.nba.utils import get_dirs, parse_dumped_game_data, clean_tables
-
+from src.scrapers.nba.utils.formatting import clean_tables
+from src.scrapers.nba.utils.file_io import get_dirs
+from src.scrapers.nba.utils.parsing import parse_dumped_game_data
 
 if __name__ == "__main__":
     config = configparser.ConfigParser()
@@ -47,8 +48,8 @@ if __name__ == "__main__":
             master_player_stats.extend(player_stats)
             master_game_stats.extend(game_stats)
             master_game_meta.append(game_meta)
-        i += 1
-        if i > 600:
+
+        if int(date) > 20190701:
             break
 
     game_meta_table, game_stats_table, team_meta_table, player_meta_table, player_stats_table = clean_tables(

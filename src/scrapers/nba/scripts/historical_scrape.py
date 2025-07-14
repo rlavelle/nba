@@ -1,18 +1,23 @@
+#!/usr/bin/env python3
+
 import configparser
 import json
 import os
 from concurrent.futures import ThreadPoolExecutor, as_completed
+from datetime import datetime
+
 from src.scrapers.nba.nba_stats_api import NBAStatsApi
 from src.config import CONFIG_PATH
 from src.logging.logger import Logger
-from src.scrapers.nba.utils import is_date_data_complete, is_game_data_complete, fetch_and_save_boxscore, date_to_dint, \
-    parse_games, date_to_lookup, generate_dates
-
+from src.scrapers.nba.utils.api_utils import fetch_and_save_boxscore
+from src.scrapers.nba.utils.validation import is_date_data_complete, is_game_data_complete
+from src.scrapers.nba.utils.date import generate_dates, date_to_dint, date_to_lookup
+from src.scrapers.nba.utils.parsing import parse_games
 
 if __name__ == "__main__":
     logger = Logger()
     api = NBAStatsApi()
-    dates = generate_dates(2014, 7, 1)
+    dates = generate_dates(datetime(2019,7,1))
 
     config = configparser.ConfigParser()
     config.read(CONFIG_PATH)
@@ -20,6 +25,10 @@ if __name__ == "__main__":
 
     boxscores = config.options('NBA_STATS_ENDPOINTS')
     periods = config.options('TIME_PERIODS')
+
+    raw_errors = open('/Users/rowanlavelle/Documents/Projects/nba/logs/errors.txt', 'r').readlines()
+    # (game_id, boxscore)
+    errors = list(set([tuple(x.split()) for x in raw_errors]))
 
     futures = []
     with ThreadPoolExecutor(max_workers=20) as executor:
@@ -61,6 +70,14 @@ if __name__ == "__main__":
                 json.dump(v, open(game_file, 'w'))
 
                 for boxscore in boxscores:
+                    err = False
+                    for a,b in errors:
+                        if a == game_id and b == boxscore:
+                            print('SKIPPING ERROR FILE')
+                            err = True
+                    if err:
+                        continue
+
                     futures.append(
                         executor.submit(
                             fetch_and_save_boxscore,
@@ -71,4 +88,7 @@ if __name__ == "__main__":
         print(f'Submitted {len(futures)} tasks... waiting for completion.')
 
         for future in as_completed(futures):
-            future.result()
+            try:
+                future.result()
+            except Exception as e:
+                logger.log(f'[EXCEPTION ON FUTURE]: {e}')

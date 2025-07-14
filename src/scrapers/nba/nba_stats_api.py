@@ -86,7 +86,7 @@ class NBAStatsApi:
                 time.sleep(retry_interval)
 
             # Exponential backoff with jitter
-            retry_interval *= random.uniform(1.5, 2.5)
+            retry_interval *= random.uniform(1.2, 1.8)
 
         # If we exhausted retries:
         msg = f"[ERROR] Failed after {max_retries} attempts for {url} with params {params}."
