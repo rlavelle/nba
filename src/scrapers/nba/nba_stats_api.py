@@ -64,7 +64,7 @@ class NBAStatsApi:
                     return response.json()
 
                 # Handle known retryable status codes
-                if response.status_code == 503 or response.status_code in {429, 500, 502, 504}:
+                if response.status_code in {503, 429, 500, 502, 504}:
                     msg = f"[{attempt}/{max_retries}] Server error {response.status_code} for {url}. Retrying in {retry_interval:.1f}s."
                 else:
                     msg = f"[{attempt}/{max_retries}] Unexpected status {response.status_code} for {url}. Retrying in {retry_interval:.1f}s."

@@ -24,6 +24,9 @@ def date_to_lookup(date:datetime.date, date_format="%m/%d/%Y") -> str:
 
 
 def time_to_minutes(time_string:str) -> float:
+    if '-' in time_string:
+        return 0
+
     x = list(map(int, time_string.split(':')))
     if len(x) == 2:
         total_seconds = x[0] * 60 + x[1]

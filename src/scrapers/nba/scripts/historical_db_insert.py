@@ -49,9 +49,6 @@ if __name__ == "__main__":
             master_game_stats.extend(game_stats)
             master_game_meta.append(game_meta)
 
-        if int(date) > 20190701:
-            break
-
     game_meta_table, game_stats_table, team_meta_table, player_meta_table, player_stats_table = clean_tables(
         master_game_meta, master_game_stats, master_team_meta, master_player_meta, master_player_stats
     )
