@@ -8,7 +8,6 @@ from src.types.game_types import StatType, SeasonType
 from src.types.player_types import PlayerType, PlayerFeaturesDF
 
 
-# todo: clean up block comments to be uniform style
 class NBADataLoader:
     def __init__(self):
         self.dbm = DBManager()
@@ -16,14 +15,14 @@ class NBADataLoader:
         self.loaded = False
 
     def load_data(self,
-                  stat_type: StatType = StatType.TOTAL,
-                  ssns: Tuple[SeasonType] = (SeasonType.REGULAR,)):
+                 stat_type: StatType = StatType.TOTAL,
+                 ssns: Tuple[SeasonType] = (SeasonType.REGULAR,)) -> None:
         """
         Load and process NBA game and player data.
 
-        Args:
-            stat_type: Type of statistics to load (default: total statistics)
-            ssns: Tuple of season types to include (default: regular season only)
+        :param stat_type: Type of statistics to load (default: total statistics)
+        :param ssns: Tuple of season types to include (default: regular season only)
+        :return: None
         """
         game_stats, game_meta, games = self._load_games(stat_type, ssns)
         self.data['game_stats'] = game_stats
@@ -41,22 +40,28 @@ class NBADataLoader:
         self.loaded = True
 
     def _load_games(self,
-                    stat_type: StatType,
-                    ssns: Tuple[SeasonType]) -> Tuple[pd.DataFrame, pd.DataFrame, pd.DataFrame]:
+                   stat_type: StatType,
+                   ssns: Tuple[SeasonType]) -> Tuple[pd.DataFrame, pd.DataFrame, pd.DataFrame]:
         """
         Load game statistics and metadata.
+
+        :param stat_type: Type of statistics to load
+        :param ssns: Tuple of season types to include
+        :return: Tuple of (game_stats, game_meta, merged_games) DataFrames
         """
         game_stats = self.dbm.get_game_stats()
         game_meta = self.dbm.get_games()
         season_codes = [s.value for s in ssns]
         game_meta = game_meta[game_meta.season_type_code.isin(season_codes)].copy()
         games = pd.merge(game_meta, game_stats, how='left', on='game_id')
-        games = games[games.stat_type == stat_type.value.upper()] #todo: prob should fix this upper nonsense
+        games = games[games.stat_type == stat_type.value.upper()]  # TODO: Fix case sensitivity
         return game_stats, game_meta, games
 
     def _load_players(self) -> Tuple[pd.DataFrame, pd.DataFrame, pd.DataFrame]:
         """
         Load player statistics and metadata.
+
+        :return: Tuple of (player_stats, player_meta, merged_players) DataFrames
         """
         player_stats = self.dbm.get_player_stats()
         player_meta = self.dbm.get_players()
@@ -64,19 +69,23 @@ class NBADataLoader:
         return player_stats, player_meta, players
 
     def _process_players(self,
-                         players: pd.DataFrame,
-                         games: pd.DataFrame) -> PlayerFeaturesDF:
+                        players: pd.DataFrame,
+                        games: pd.DataFrame) -> PlayerFeaturesDF:
         """
         Process player data including calculating minutes, player types, and spreads.
+
+        :param players: Raw player stats DataFrame
+        :param games: Game data DataFrame
+        :return: Processed player features DataFrame
         """
         x = games[['game_id', 'team_id', 'season', 'season_type', 'season_type_code',
-                   'dint', 'date', 'is_home']]
+                  'dint', 'date', 'is_home']]
 
         players = pd.merge(x, players, on=['game_id', 'team_id'], how='left')
 
         tmp = pd.merge(games[games.is_home == 1][['game_id', 'points']],
-                       games[games.is_home == 0][['game_id', 'points']],
-                       on='game_id', how='left')
+                      games[games.is_home == 0][['game_id', 'points']],
+                      on='game_id', how='left')
         tmp['spread'] = np.abs(tmp.points_x - tmp.points_y)
         players = pd.merge(players, tmp[['game_id', 'spread']], on='game_id', how='left')
 
@@ -87,10 +96,6 @@ class NBADataLoader:
         mins['rk'] = mins.groupby([mins.team_id, mins.season]).mu_m.rank(
             method='first', ascending=False)
 
-        # Classify player types based on minutes played
-        # generally starters play more than 28min (forced top 5 below if not)
-        # after that primary bench gets around 20-28, secondary bench 10-20
-        # deep bench gets garbage minutes
         mins['player_type'] = np.where(
             mins.mu_m >= 28, PlayerType.STARTER_PLUS.value,
             np.where((mins.mu_m >= 20) & (mins.mu_m < 28), PlayerType.PRIMARY_BENCH.value,
@@ -106,24 +111,22 @@ class NBADataLoader:
 
     def get_player_type(self, ptypes: Tuple[PlayerType]) -> pd.DataFrame:
         """
-        Get a specific player type from processed players
-        :param ptypes: One of PlayerTypeLiteral
-        :return: dataframe subset of player type
-        """
-        assert self.loaded, "data not loaded"
-        players = self.data['players']
+        Get a specific player type from processed players.
 
+        :param ptypes: Tuple of PlayerType values to filter by
+        :return: DataFrame subset of the specified player types
+        """
+        assert self.loaded, "Data not loaded"
+        players = self.data['players']
         return players[players.player_type.isin(p.value for p in ptypes)].copy()
 
     def get_data(self, key: str) -> pd.DataFrame:
         """
         Get a specific dataset by key.
 
-        Args:
-            key: One of 'game_stats', 'game_meta', 'games', 'player_stats', 'player_meta', 'players'
-
-        Returns:
-            Requested DataFrame
+        :param key: One of 'game_stats', 'game_meta', 'games', 'player_stats', 'player_meta', 'players'
+        :return: Requested DataFrame
+        :raises AssertionError: If data hasn't been loaded yet
         """
-        assert self.loaded, "data not loaded"
+        assert self.loaded, "Data not loaded"
         return self.data.get(key)
