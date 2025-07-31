@@ -3,7 +3,7 @@ from typing import Literal
 
 
 SeasonTypeLiteral = Literal["Regular Season", "Playoffs", "All-Star", "Preseason", "Summer League", "PlayIn", "IST Championship"]
-
+StatTypeLiteral = Literal["starters", "bench", "statistics"]
 
 class StatType(str, Enum):
     STARTERS = "starters"
