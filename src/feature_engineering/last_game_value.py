@@ -1,0 +1,15 @@
+import pandas as pd
+
+from src.feature_engineering.base import BaseFeature
+
+
+class LastGameValueFeature(BaseFeature):
+    def __init__(self, source_col: str = 'points'):
+        self.source_col = source_col
+
+    @property
+    def feature_name(self) -> str:
+        return f'{self.source_col}_1g'
+
+    def calculate(self, df: pd.DataFrame, group_col: tuple[str] = ('player_id',)) -> pd.Series:
+        return df.groupby(group_col)[self.source_col].shift(1)
