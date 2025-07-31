@@ -34,7 +34,7 @@ class NBADataLoader:
         self.data['player_meta'] = player_meta
 
         # Process and merge the data
-        processed_players: PlayerFeaturesDF = self._process_players(players, games)
+        processed_players: PlayerFeaturesDF = self._process_players(players)
         self.data['players'] = processed_players
 
         self.loaded = True
@@ -68,16 +68,14 @@ class NBADataLoader:
         players = pd.merge(player_stats, player_meta, how='left', on='player_id')
         return player_stats, player_meta, players
 
-    def _process_players(self,
-                        players: pd.DataFrame,
-                        games: pd.DataFrame) -> PlayerFeaturesDF:
+    def _process_players(self, players: pd.DataFrame) -> PlayerFeaturesDF:
         """
         Process player data including calculating minutes, player types, and spreads.
 
         :param players: Raw player stats DataFrame
-        :param games: Game data DataFrame
         :return: Processed player features DataFrame
         """
+        games = self.data['games']
         x = games[['game_id', 'team_id', 'season', 'season_type', 'season_type_code',
                   'dint', 'date', 'is_home']]
 
