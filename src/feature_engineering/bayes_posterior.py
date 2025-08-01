@@ -11,7 +11,7 @@ class BayesPosteriorFeature(BaseFeature):
 
     @property
     def feature_name(self) -> str:
-        return f'{self.source_col}_{self.ybar_col}_ bayes_post'
+        return f'{self.source_col}_{self.ybar_col}_bayes_post'
 
     def calculate(self, df: pd.DataFrame, group_col: tuple[str] = ('player_id', 'season')) -> pd.Series:
         """

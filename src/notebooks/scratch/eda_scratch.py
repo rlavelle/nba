@@ -161,15 +161,21 @@ for f in features:
     season_stats = season_stats.rename(columns={'mean': f'{f}_mean', 'var': f'{f}_var', 'size':f'{f}_N'})
     season_stats[f'{f}_mu0'] = season_stats.groupby('player_id')[f'{f}_mean'].shift(1)
     season_stats[f'{f}_s2bar'] = season_stats.groupby('player_id')[f'{f}_var'].shift(1)
-    season_stats[f'{f}_tau20'] = season_stats[f'{f}_s2bar'] / season_stats[f'{f}_N']
 
+    season_stats[f'{f}_tau20'] = (
+        season_stats.groupby('player_id')[f'{f}_mean']
+        .expanding()  # Get all previous values for each row
+        .var()  # Calculate sample variance
+        .reset_index(level=0, drop=True)
+    )*1000000
+    
     x = x.merge(season_stats[['player_id', 'season', f'{f}_mu0', f'{f}_s2bar', f'{f}_tau20', f'{f}_N']], 
                  on=['player_id', 'season'], how='left')
     
     
     x[f'{f}_mu_n'] = (
         (
-            (x.n*x[f]).shift(1)/x[f'{f}_s2bar'] + 
+            (x.n.shift(1)*x[f'{f}_f'])/x[f'{f}_s2bar'] + 
             x[f'{f}_mu0']/x[f'{f}_tau20']
         ) / 
         (
@@ -182,6 +188,7 @@ for f in features:
     
     x[f'{f}_hot_bayes'] = np.where(x[f'{f}_mu_n']==0, 1, x.avg / x[f'{f}_mu_n'])
     x[f'{f}_hot_bayes'] = x[f'{f}_hot_bayes'].fillna(1) 
+
     
 x = x.drop(columns=['cum_f', 'n', 'avg']).dropna()
 x = x[x['season'] > x['season'].min()].copy()
@@ -193,12 +200,11 @@ for f in features:
     corr3 = lambda z: float(np.corrcoef(z[f'{f}_mu_n'], z.points)[0,1])
     corr4 = lambda z: float(np.corrcoef(z[f'{f}_hot_bayes'], z.points)[0,1])
 
-
     t1 = x.groupby(x.player_id).apply(corr1, include_groups=False).mean()
     t2 = x.groupby(x.player_id).apply(corr2, include_groups=False).mean()
     t3 = x.groupby(x.player_id).apply(corr3, include_groups=False).mean()
     t4 = x.groupby(x.player_id).apply(corr4, include_groups=False).mean()
-
+            
     a.append((f, t1, t2, t3, t4))
 
 a = sorted(a, key=lambda t: t[1])
