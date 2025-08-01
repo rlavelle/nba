@@ -13,13 +13,13 @@ class BaseFeature(ABC):
         pass
 
     @abstractmethod
-    def calculate(self, df: pd.DataFrame, group_col: tuple[str] = ('player_id',)) -> pd.Series:
+    def calculate(self, df: pd.DataFrame) -> pd.Series:
         """Calculate feature values for the entire DataFrame"""
         pass
 
     def __call__(self, df: pd.DataFrame) -> pd.DataFrame:
         """Convenience method to apply the feature and return updated DataFrame"""
-        df[self.feature_name] = self.calculate(df)
+        df[self.feature_name] = self.calculate(df).values
         return df
 
 

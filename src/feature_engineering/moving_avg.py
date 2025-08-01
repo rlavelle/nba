@@ -13,10 +13,12 @@ class SimpleMovingAvgFeature(BaseFeature):
         return f'{self.source_col}_sma_{self.window}'
 
     def calculate(self, df: pd.DataFrame, group_col: tuple[str] = ('player_id',)) -> pd.Series:
-        return (df.groupby(group_col)[self.source_col]
+        nan_filler = df.groupby(list(group_col))[self.source_col].expanding().mean().shift(1)
+        return (df.groupby(list(group_col))[self.source_col]
                 .rolling(self.window)
                 .mean()
                 .shift(1)
+                .fillna(nan_filler)
                 .reset_index(level=0, drop=True))
 
 
@@ -30,7 +32,7 @@ class ExponentialMovingAvgFeature(BaseFeature):
         return f'{self.source_col}_ema_{self.span}'
 
     def calculate(self, df: pd.DataFrame, group_col: tuple[str] = ('player_id',)) -> pd.Series:
-        return (df.groupby(group_col)[self.source_col]
+        return (df.groupby(list(group_col))[self.source_col]
                 .ewm(span=self.span)
                 .mean()
                 .shift(1)
@@ -48,9 +50,34 @@ class CumSeasonAvgFeature(BaseFeature):
     def calculate(self, df: pd.DataFrame, group_col: tuple[str] = ('player_id', 'season')) -> pd.Series:
         return (
             (
-                    (df.groupby(group_col)[self.source_col].cumsum()) /
-                    (df.groupby(group_col)[self.source_col].cumcount() + 1)
+                    (df.groupby(list(group_col))[self.source_col].cumsum()) /
+                    (df.groupby(list(group_col))[self.source_col].cumcount() + 1)
             )
+            .shift(1)
+            .reset_index(level=0, drop=True)
+        )
+
+class CumSeasonEMAFeature(BaseFeature):
+    def __init__(self, span: int = 5, source_col: str = 'points'):
+        self.span = span
+        self.source_col = source_col
+
+    @property
+    def feature_name(self) -> str:
+        return f'{self.source_col}_cum_ssn_ema'
+
+    # can this be an optimization problem?
+    def _f(self, x):
+        return 2 / (x + 1)
+    def calculate(self, df: pd.DataFrame, group_col: tuple[str] = ('player_id', 'season')) -> pd.Series:
+        """
+        uses a decay factor of 2 / (n+1)
+        :return: exponential weighted average across current observed data per season
+        """
+        return (
+            df.groupby(list(group_col))[self.source_col]
+            .expanding()
+            .apply(lambda x: x.ewm(alpha=self._f(len(x)), adjust=False).mean().iloc[-1])
             .shift(1)
             .reset_index(level=0, drop=True)
         )

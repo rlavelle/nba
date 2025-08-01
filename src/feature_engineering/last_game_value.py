@@ -12,4 +12,4 @@ class LastGameValueFeature(BaseFeature):
         return f'{self.source_col}_1g'
 
     def calculate(self, df: pd.DataFrame, group_col: tuple[str] = ('player_id',)) -> pd.Series:
-        return df.groupby(group_col)[self.source_col].shift(1)
+        return df.groupby(list(group_col))[self.source_col].shift(1)

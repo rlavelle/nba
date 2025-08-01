@@ -12,13 +12,13 @@ class PlayerHotStreakFeature(BaseFeature):
 
     @property
     def feature_name(self) -> str:
-        return f'{self.source_col}_{self.window}g_hot_streak'
+        return f'{self.source_col}_{self.window}g_v_{self.comp_col}_hot_streak'
 
     def calculate(self, df: pd.DataFrame, group_col: tuple[str] = ('player_id', 'season')) -> pd.Series:
         assert self.comp_col in df.columns, f'{self.comp_col} not found in provided DataFrame'
 
         df0 = df.copy()
-        df0['avg'] = df0.groupby(group_col)[self.source_col].rolling(3).mean().shift(1).values
+        df0['avg'] = df0.groupby(list(group_col))[self.source_col].rolling(self.window).mean().shift(1).values
         df0['hot'] = np.where(df0[self.comp_col] == 0, 1, df0.avg / df0[self.comp_col])
         df0['hot'] = df0.hot.fillna(1)
 
