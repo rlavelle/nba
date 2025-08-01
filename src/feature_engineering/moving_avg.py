@@ -48,14 +48,16 @@ class CumSeasonAvgFeature(BaseFeature):
         return f'{self.source_col}_cum_ssn_avg'
 
     def calculate(self, df: pd.DataFrame, group_col: tuple[str] = ('player_id', 'season')) -> pd.Series:
-        return (
-            (
-                    (df.groupby(list(group_col))[self.source_col].cumsum()) /
-                    (df.groupby(list(group_col))[self.source_col].cumcount() + 1)
-            )
-            .shift(1)
-            .reset_index(level=0, drop=True)
-        )
+        """
+        cumulative season average
+        :return: cum season avg
+        """
+        return (df.groupby(list(group_col))[self.source_col]
+                .expanding()
+                .mean()
+                .shift(1)
+                .reset_index(level=0, drop=True))
+
 
 class CumSeasonEMAFeature(BaseFeature):
     def __init__(self, span: int = 5, source_col: str = 'points'):
@@ -69,15 +71,14 @@ class CumSeasonEMAFeature(BaseFeature):
     # can this be an optimization problem?
     def _f(self, x):
         return 2 / (x + 1)
+
     def calculate(self, df: pd.DataFrame, group_col: tuple[str] = ('player_id', 'season')) -> pd.Series:
         """
         uses a decay factor of 2 / (n+1)
         :return: exponential weighted average across current observed data per season
         """
-        return (
-            df.groupby(list(group_col))[self.source_col]
-            .expanding()
-            .apply(lambda x: x.ewm(alpha=self._f(len(x)), adjust=False).mean().iloc[-1])
-            .shift(1)
-            .reset_index(level=0, drop=True)
-        )
+        return (df.groupby(list(group_col))[self.source_col]
+                .expanding()
+                .apply(lambda x: x.ewm(alpha=self._f(len(x)), adjust=False).mean().iloc[-1])
+                .shift(1)
+                .reset_index(level=0, drop=True))

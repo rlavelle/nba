@@ -37,13 +37,3 @@ class FeaturePipeline:
     def get_feature_names(self) -> List[str]:
         """Get names of all features in the pipeline"""
         return [f.feature_name for f in self.features]
-
-# if __name__ == "__main__":
-#     features = [
-#         LastGamePointsFeature(),
-#         RollingPointsAvgFeature(window=3),
-#         ARIMAMinutesFeature(order=(5, 1, 3))
-#     ]
-#
-#     pipeline = FeaturePipeline(features)
-#     df_with_features = pipeline.transform(df)
