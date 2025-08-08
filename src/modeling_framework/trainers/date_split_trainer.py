@@ -27,6 +27,11 @@ class DateSplitTrainer(Trainer):
 
         train_df, test_df = self._split_by_date(df, date_cutoff, date_col)
 
+        if 'std' in kwargs:
+            standardizer = kwargs['std'](train_df, features+[target])
+            train_df = standardizer.transform(train_df, handle_unseen='global')
+            test_df = standardizer.transform(test_df, handle_unseen='global')
+
         X_train = train_df[features]
         y_train = train_df[target]
         X_test = test_df[features]
