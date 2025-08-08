@@ -1,5 +1,5 @@
 from abc import ABC, abstractmethod
-from typing import List, Any, Tuple
+from typing import List, Any, Tuple, Callable
 
 import numpy as np
 import pandas as pd
@@ -8,7 +8,9 @@ from src.modeling_framework.framework.model import Model
 
 
 class Trainer(ABC):
-    def __init__(self, model: Model, metric_fn):
+    def __init__(self,
+                 model: Model,
+                 metric_fn: Callable[[np.array, np.array], float]):
         self.model = model
         self.metric_fn = metric_fn
 

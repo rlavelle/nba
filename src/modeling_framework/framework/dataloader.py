@@ -105,7 +105,7 @@ class NBADataLoader:
         players = pd.merge(players, mins, on=['player_id', 'team_id', 'season'], how='left')
         players['ppm'] = np.where(players.minutes == 0, 0, players.points / players.minutes)
 
-        return players
+        return PlayerFeaturesDF(players)
 
     def get_player_type(self, ptypes: Tuple[PlayerType]) -> pd.DataFrame:
         """

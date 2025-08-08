@@ -1,16 +1,12 @@
 from datetime import datetime
 
-import numpy as np
-
 from src.modeling_framework.framework.model import Model
 from src.modeling_framework.framework.trainer import Trainer
 import pandas as pd
-from typing import Tuple, List, Any
+from typing import Tuple, List
 
 
 class DateSplitTrainer(Trainer):
-    def __init__(self, model: Model, metric_fn):
-        super().__init__(model, metric_fn)
 
     def _train_and_evaluate_impl(self,
                                  df: pd.DataFrame,
@@ -36,12 +32,15 @@ class DateSplitTrainer(Trainer):
         X_test = test_df[features]
         y_test = test_df[target]
 
+        assert X_train.shape[0] > 0, 'No training points'
+        assert X_test.shape[0] > 0, 'No testing points'
+
         self.model.train(X_train, y_train)
         predictions = self.model.predict(X_test)
 
         if proj:
             yh_train = self.model.predict(X_train)
-            predictions = self.model._proj(y_train, yh_train, predictions)
+            predictions = Model._proj(y_train, yh_train, predictions)
 
         error = self.metric_fn(y_test, predictions)
 

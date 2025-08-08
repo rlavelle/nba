@@ -3,15 +3,12 @@ from typing import List, Tuple
 import numpy as np
 import pandas as pd
 
-from src.modeling_framework.framework.model import Model
 from src.modeling_framework.framework.trainer import Trainer
 
 GAME_WINDOW = 100
 
 
 class RollingWindowTrainer(Trainer):
-    def __init__(self, model: Model, metric_fn):
-        super().__init__(model, metric_fn)
 
     def _train_and_evaluate_impl(self,
                                  df: pd.DataFrame,
@@ -39,9 +36,9 @@ class RollingWindowTrainer(Trainer):
             test = df.iloc[[i]]
 
             X_train = train[features]
-            y_train = train[target]
+            y_train = train[target].values
             X_test = test[features]
-            y_test = test[target]
+            y_test = test[target].values[0]
 
             self.model.train(X_train, y_train)
             pred = self.model.predict(X_test)[0]
@@ -49,4 +46,9 @@ class RollingWindowTrainer(Trainer):
             actuals.append(y_test)
             predictions.append(pred)
 
-        return self.metric_fn(actuals, predictions), predictions, actuals
+        actuals = np.array(actuals)
+        predictions = np.array(predictions)
+
+        error = self.metric_fn(actuals, predictions)
+
+        return error, predictions, actuals

@@ -47,7 +47,8 @@ class Model(ABC):
         pth = fpath if fpath else os.path.join(self.model_path, self.name)
         pickle.dump(self, open(pth , 'wb'))
 
-    def _proj(self, y_train, yh_train, yh_test):
+    @staticmethod
+    def _proj(y_train, yh_train, yh_test):
         assert y_train.shape == yh_train.shape, 'train truth and hat diff length'
         yt = y_train - y_train.mean()
         yh = yh_train - yh_train.mean()

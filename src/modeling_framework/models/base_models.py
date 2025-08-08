@@ -15,15 +15,12 @@ class LastGameModel(Model):
 class SimpleMovingAverageModel(Model):
     def build_model(self, **params):
         self.window = params['window']
-
-        if params['source_col']:
-            self.source_col = params['source_col']
-        else:
-            self.source_col = 'points'
+        self.avg_type = params['avg_type']
+        self.source_col = params['source_col']
 
     def fit(self, X_train, y_train):
         pass
 
     def predict(self, X):
-        col_name = f'{self.source_col}_sma_{self.window}'
+        col_name = f'{self.source_col}_{self.avg_type}_{self.window}'
         return X[col_name].values

@@ -1,6 +1,8 @@
 from itertools import product
 import pickle
-from typing import Dict, Any, Tuple, List
+from typing import Dict, Any, Tuple, List, Callable
+
+import numpy as np
 import pandas as pd
 
 from src.logging.logger import Logger
@@ -11,16 +13,17 @@ from src.modeling_framework.framework.trainer import Trainer
 class GridSearch:
     def __init__(self,
                  model: Model,
-                 trainer: Trainer,
+                 metric_fn: Callable[[np.array, np.array], float],
                  param_grid: Dict[str, Any],
                  logger: Logger = None):
         self.model = model
-        self.trainer = trainer
+        self.metric_fn = metric_fn
         self.param_grid = param_grid
         self.logger = logger
 
     def search(self,
                df: pd.DataFrame,
+               trainer: Trainer,
                features: List[str],
                target: str,
                **trainer_kwargs) -> Tuple[Model, Dict, float]:
@@ -29,6 +32,7 @@ class GridSearch:
 
         Args:
             df: DataFrame containing all data
+            trainer: trainer to use for train / test results
             features: List of feature columns
             target: Target column name
             trainer_kwargs: Arguments specific to the trainer implementation
@@ -42,16 +46,26 @@ class GridSearch:
 
         keys, values = zip(*self.param_grid.items())
 
+        combinations = product(*values)
+
+        msg = f"[GRID] Searching through {len(list(combinations))} models"
+        if self.logger:
+            self.logger.log(msg)
+        else:
+            print(msg)
+
         for combination in product(*values):
             params = dict(zip(keys, combination))
             self.model.build_model(**params)
 
-            # Delegate all evaluation to the trainer
-            error, _, _ = self.trainer.train_and_evaluate(
-                df=df,
-                features=features,
-                target=target,
-                **trainer_kwargs
+            error, _, _ = (
+                trainer(model=self.model, metric_fn=self.metric_fn)
+                .train_and_evaluate(
+                    df=df,
+                    features=features,
+                    target=target,
+                    **trainer_kwargs
+                )
             )
 
             score = self._aggregate_errors(error)
@@ -68,7 +82,7 @@ class GridSearch:
                 best_model = self._deepcopy_model()
 
 
-        msg = f"[BEST] Params: {best_params} => Score: {score:.4f}"
+        msg = f"[BEST] Params: {best_params} => Score: {best_score:.4f}"
         if self.logger:
             self.logger.log(msg)
         else:
