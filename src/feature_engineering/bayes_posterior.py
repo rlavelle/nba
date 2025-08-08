@@ -77,4 +77,6 @@ class BayesPosteriorFeature(BaseFeature):
                     (
                         df0.n.shift(1) / df0[f'{self.source_col}_s2bar'] + 1 / df0[f'{self.source_col}_tau20']
                     )
-                ).reset_index(level=0, drop=True))
+                )
+                .fillna(df0[f'{self.source_col}_mu0'])
+                .reset_index(level=0, drop=True))

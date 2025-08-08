@@ -32,10 +32,17 @@ class ExponentialMovingAvgFeature(BaseFeature):
         return f'{self.source_col}_ema_{self.span}'
 
     def calculate(self, df: pd.DataFrame, group_col: tuple[str] = ('player_id',)) -> pd.Series:
+        nan_filler = (
+            df.groupby(list(group_col))[self.source_col]
+            .expanding()
+            .apply(lambda x: x.ewm(alpha=self._f(len(x)), adjust=True)
+                   .mean().iloc[-1])
+        )
         return (df.groupby(list(group_col))[self.source_col]
                 .ewm(span=self.span)
                 .mean()
                 .shift(1)
+                .fillna(nan_filler)
                 .reset_index(level=0, drop=True))
 
 
