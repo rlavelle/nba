@@ -16,9 +16,7 @@ tractable to predict if a player is going to shoot above or below their season m
             + models show no signal in predicting above or below average...
               when generally modeling, models seem to tightly follow cum ssn avg
               when modeling player by player, more variance, but worse MAE
-              
-        * is this a classification problem better suited for logistic regression?
-        
+                      
         * does standardizing data help with this?
             + predicting std does not work if using all prev hist as std...
             + if we use the minute prediction lm, to predict raw minutes
@@ -26,6 +24,9 @@ tractable to predict if a player is going to shoot above or below their season m
               we get down to a ~5.7 mae (on dev). then if we standardize that
               and standardize the test data (meaning mean of dev season)
               around 47% of the time we are directionaly correct on prediction
+              
+        * is this a classification problem better suited for logistic regression?
+
         
     - is it worth while to try neural nets? if XGB dsnt outperform LM maybe signal is low
         + the data seems naturally linear... you score more pts if you are shooting more
@@ -34,18 +35,13 @@ tractable to predict if a player is going to shoot above or below their season m
     
 %% does modeling PPM and mutliplying by the minutes model have better accuracy?
     - does this provide a wider variance? how does it perform predicting above / below avg
+        + slightly better MAE under ppm + minutes model... need to clean up
+        
     - predict ppm O/U mean ppm * minutes?
+        + directional accuracy (small signal might come here) 51% on (cum prev mean/std) std data
+        
     - standardized data predicts std above mean? can use that for CI in prediction?
-    
-    
-%% if logistic reg works, is it possible to use that as signal to predict points O/U mean?
-    
-
-%% write a framework to test jitter within n points to get distribution on model confidence
-
-
-%% function (similar to scikit?) that can do train test for me (given train test frmwk)
-    
+        
 """
 
 #%%

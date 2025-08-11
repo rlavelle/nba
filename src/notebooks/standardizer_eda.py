@@ -9,7 +9,7 @@ Created on Fri Aug  8 19:13:10 2025
 """
 Testing different kinds of standardizing techniques
 
-base: std based on all historical data
+base: std based on all historical data (done)
 
 seasonal: std based on previous season data
 
