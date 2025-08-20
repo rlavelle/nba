@@ -31,6 +31,9 @@ class ExponentialMovingAvgFeature(BaseFeature):
     def feature_name(self) -> str:
         return f'{self.source_col}_ema_{self.span}'
 
+    def _f(self, x):
+        return 2 / (x + 1)
+
     def calculate(self, df: pd.DataFrame, group_col: tuple[str] = ('player_id',)) -> pd.Series:
         nan_filler = (
             df.groupby(list(group_col))[self.source_col]
@@ -75,7 +78,6 @@ class CumSeasonEMAFeature(BaseFeature):
     def feature_name(self) -> str:
         return f'{self.source_col}_cum_ssn_ema'
 
-    # can this be an optimization problem?
     def _f(self, x):
         return 2 / (x + 1)
 
