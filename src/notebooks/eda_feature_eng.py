@@ -63,12 +63,26 @@ for f in PLAYER_FEATURES:
                                       source_col=f)
             )
             
-        if '3g' not in feature.feature_name: 
+        if '3g' not in feature.feature_name and '1g' not in feature.feature_name: 
             dependents.append(
-                PlayerHotStreakFeature(comp_col=feature.feature_name,
+                PlayerHotStreakFeature(window=1,
+                                       comp_col=feature.feature_name,
+                                       source_col=f)
+            )
+            
+            dependents.append(
+                PlayerHotStreakFeature(window=3,
+                                       comp_col=feature.feature_name,
                                        source_col=f)
             )
         
+        if '3g' in feature.feature_name:
+             dependents.append(
+                 PlayerHotStreakFeature(window=1,
+                                        comp_col=feature.feature_name,
+                                        source_col=f)
+             )
+                    
     features.extend(dependents)
     pipeline = FeaturePipeline(features)
     x = pipeline.transform(x)
@@ -113,8 +127,8 @@ t = correlation_results[correlation_results.mean_correlation > 0.1].copy()
 t = t.sort_values(by=['source_column', 'mean_correlation'], ascending=False)
 
 #%%
-minutes_best_cols = t.feature_name.unique()
-# points_best_cols = t.feature_name.unique()
+#minutes_best_cols = t.feature_name.unique()
+points_best_cols = t.feature_name.unique()
 
 #%%
 z = x[x.player_slug == 'james-harden'].copy()
@@ -126,10 +140,6 @@ from src.modeling_framework.models.xgb_model import XGBModel
 from src.modeling_framework.models.regression import LinearModel
 from src.modeling_framework.models.base_models import SimpleMovingAverageModel
 
-model = LinearModel(name='lm')
-model.build_model()
-
-#%%
 from src.modeling_framework.trainers.date_split_trainer import DateSplitTrainer
 from datetime import datetime
 train_date_cutoff = datetime(2023, 10, 1)
@@ -140,6 +150,10 @@ train_data = x[x.date < dev_date_cutoff].copy()
 def rmse(y_true, y_pred):
     return np.sqrt(np.mean((y_true - y_pred)**2))
 
+model = LinearModel(name='lm')
+model.build_model()
+
+#%%
 base_model = SimpleMovingAverageModel(name='ema')
 base_model.build_model(window=7, avg_type='ema', source_col=ycol)
 
@@ -209,21 +223,34 @@ def build_quick_lm(fts):
     return err
 
 #%%
+def bic(model, X, y):
+    yh = model.predict(X)
+    rss = np.sum((y-yh)**2)
+    n = len(y)
+    k = X.shape[1]+1
+    return n * np.log(rss/n) + k * np.log(n)
+
+#%%
 #cols = list(points_best_cols)
 cols = list(minutes_best_cols)
 
 curr_order = [([], np.inf), ]
 
 #%%
+prev_bic = 0
 while len(cols) > 0:
     best_col = None
     best_err = np.inf
     for col in cols:
-        e = build_quick_lm(curr_order[-1][0] + [col])
+        fts = curr_order[-1][0] + [col]
+        e = build_quick_lm(fts)
         if e < best_err:
             best_col = col
             best_err = e
-            
+            bic_v = bic(model, train_data[fts], train_data[ycol])
+    
+    print(bic_v - prev_bic)
+    prev_bic = bic_v
     curr_order.append((
         curr_order[-1][0] + [best_col], best_err
     ))

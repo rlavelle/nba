@@ -39,9 +39,7 @@ tractable to predict if a player is going to shoot above or below their season m
         
     - predict ppm O/U mean ppm * minutes?
         + directional accuracy (small signal might come here) 51% on (cum prev mean/std) std data
-        
-    - standardized data predicts std above mean? can use that for CI in prediction?
-        
+                
 """
 
 #%%
