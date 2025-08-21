@@ -27,9 +27,11 @@ class FeaturePipeline:
     def __init__(self, features: List[BaseFeature]):
         self.features = features
 
-    def transform(self, df: pd.DataFrame) -> pd.DataFrame:
+    def transform(self,
+                  df: pd.DataFrame,
+                  sort_order: tuple[str] = ('player_id', 'season', 'date')) -> pd.DataFrame:
         """Apply all features to the DataFrame"""
-        df = df.sort_values(['player_id', 'season', 'date'])
+        df = df.sort_values(list(sort_order))
         for feature in self.features:
             df = feature(df)
         return df

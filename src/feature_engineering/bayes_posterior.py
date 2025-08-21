@@ -4,16 +4,22 @@ from src.feature_engineering.base import BaseFeature
 
 
 class BayesPosteriorFeature(BaseFeature):
-    def __init__(self, ybar_col: str, source_col: str = 'points'):
+    def __init__(self,
+                 ybar_col: str,
+                 source_col: str = 'points',
+                 id_col: str = 'player_id',
+                 group_col: tuple[str] = ('player_id', 'season')):
         self.prior_uncertainty = 1.5
         self.source_col = source_col
         self.ybar_col = ybar_col
+        self.id_col = id_col
+        self.group_col = group_col
 
     @property
     def feature_name(self) -> str:
         return f'{self.source_col}_{self.ybar_col}_bayes_post'
 
-    def calculate(self, df: pd.DataFrame, group_col: tuple[str] = ('player_id', 'season')) -> pd.Series:
+    def calculate(self, df: pd.DataFrame) -> pd.Series:
         """
         Bayesian updating for \theta (mean of source col {f}), using an assumed variance (\sigma^2) on {f}
         where y denotes the current seasons observed data. using an assumed variance means we do not need to use
@@ -42,17 +48,17 @@ class BayesPosteriorFeature(BaseFeature):
         assert self.ybar_col in df.columns, f'{self.ybar_col} not found in provided DataFrame'
 
         df0 = df.copy()
-        df0['n'] = df0.groupby(list(group_col))[self.source_col].cumcount() + 1
+        df0['n'] = df0.groupby(list(self.group_col))[self.source_col].cumcount() + 1
 
-        season_stats = df0.groupby(list(group_col))[self.source_col].agg(
+        season_stats = df0.groupby(list(self.group_col))[self.source_col].agg(
             ['mean', 'var', 'size']).reset_index()
         season_stats = season_stats.rename(columns={'mean': f'{self.source_col}_mean', 'var': f'{self.source_col}_var',
                                                     'size': f'{self.source_col}_N'})
 
-        season_stats[f'{self.source_col}_mu0'] = season_stats.groupby('player_id')[f'{self.source_col}_mean'].shift(1)
-        season_stats[f'{self.source_col}_s2bar'] = season_stats.groupby('player_id')[f'{self.source_col}_var'].shift(1)
+        season_stats[f'{self.source_col}_mu0'] = season_stats.groupby(self.id_col)[f'{self.source_col}_mean'].shift(1)
+        season_stats[f'{self.source_col}_s2bar'] = season_stats.groupby(self.id_col)[f'{self.source_col}_var'].shift(1)
 
-        season_stats[f'{self.source_col}_tau20'] = (season_stats.groupby('player_id')[f'{self.source_col}_mean']
+        season_stats[f'{self.source_col}_tau20'] = (season_stats.groupby(self.id_col)[f'{self.source_col}_mean']
                                                     .expanding()
                                                     .var()
                                                     .reset_index(level=0, drop=True)
@@ -60,12 +66,12 @@ class BayesPosteriorFeature(BaseFeature):
 
         df0 = pd.merge(df0,
                        season_stats[
-                           list(group_col) +
+                           list(self.group_col) +
                            [f'{self.source_col}_mu0',
                             f'{self.source_col}_s2bar',
                             f'{self.source_col}_tau20']
                            ],
-                       on=['player_id', 'season'],
+                       on=self.group_col,
                        how='left',
                        )
 
