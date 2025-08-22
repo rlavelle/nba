@@ -134,6 +134,7 @@ def build_game_df(df_all: pd.DataFrame) -> pd.DataFrame:
     })
 
     return df_final
+
 #%%
 df = build_game_df(df_all)
 
@@ -149,6 +150,9 @@ sns.set_theme()
 x = df[(df.close_spread < 100) & (df.open_spread < 100)].copy()
 
 #%%
+np.mean(x.actual_spread < 0)
+
+#%%
 tmp = df[(df.home_team == 'Boston') | (df.away_team=='Boston')]
 tmp = tmp[(tmp.close_spread < 100) & (tmp.open_spread < 100)].copy()
 
@@ -162,12 +166,13 @@ plt.show()
 def mae(y_true, y_pred):
     return np.mean(np.abs(y_true-y_pred))
 
-mae(x.actual_spread.abs(), x.open_spread)
+mae(x.actual_spread, x.open_spread)
 
 #%%
+x.open_spread.abs().var(), x.open_spread.abs().mean()
 
-
-
+#%%
+x.open_spread.mean()
 
 
 
