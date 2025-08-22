@@ -6,7 +6,11 @@ from src.modeling_framework.framework.standardizer import Standardizer
 
 class ZScoreStandardizer(Standardizer):
     def fit(self, df: pd.DataFrame):
-        grouped = df.groupby(self.idcol)[self.features]
+        if self.idcol:
+            grouped = df.groupby(self.idcol)[self.features]
+        else:
+            grouped = df[self.features].copy()
+
         self.mu = grouped.mean()
         self.std = grouped.std()
         self.std = self.std.mask(self.std == 0, 1e-8)
@@ -20,15 +24,19 @@ class ZScoreStandardizer(Standardizer):
             'global' - use global mean/std instead
         :return: standardized features
         """
-        if self.idcol not in df:
+        if self.idcol and self.idcol not in df:
             raise ValueError(f'{self.idcol} not in provided dataframe')
 
         missing_features = [f for f in self.features if f not in df.columns]
         if missing_features:
             raise ValueError(f'Missing features: {missing_features}')
 
-        dff = df.set_index(self.idcol)
-        unseen_ids = dff.index.difference(self.mu.index)
+        if self.idcol:
+            dff = df.set_index(self.idcol)
+            unseen_ids = dff.index.difference(self.mu.index)
+        else:
+            dff = df.copy()
+            unseen_ids = pd.DataFrame()
 
         if not unseen_ids.empty:
             if handle_unseen == 'error':
@@ -56,7 +64,7 @@ class ZScoreStandardizer(Standardizer):
         else:
             standardized = (dff[self.features] - self.mu) / self.std
 
-        return standardized.reset_index()
+        return standardized.reset_index(drop=True)
 
     def inverse_transform(self, df: pd.DataFrame, handle_unseen: str = 'error'):
         """
@@ -67,15 +75,19 @@ class ZScoreStandardizer(Standardizer):
                    'global' - use global mean/std instead
                :return: unstandardized features
                """
-        if self.idcol not in df:
+        if self.idcol and self.idcol not in df:
             raise ValueError(f'{self.idcol} not in provided dataframe')
 
         missing_features = [f for f in self.features if f not in df.columns]
         if missing_features:
             raise ValueError(f'Missing features: {missing_features}')
 
-        dff = df.set_index(self.idcol)
-        unseen_ids = dff.index.difference(self.mu.index)
+        if self.idcol:
+            dff = df.set_index(self.idcol)
+            unseen_ids = dff.index.difference(self.mu.index)
+        else:
+            dff = df.copy()
+            unseen_ids = pd.DataFrame()
 
         if not unseen_ids.empty:
             if handle_unseen == 'error':
@@ -103,4 +115,4 @@ class ZScoreStandardizer(Standardizer):
         else:
             standardized = dff[self.features]*self.std + self.mu
 
-        return standardized.reset_index()
+        return standardized.reset_index(True)
