@@ -19,6 +19,10 @@ from src.scrapers.nba.utils.validation import is_date_data_complete, is_game_dat
 from src.scrapers.nba.utils.date import date_to_dint, date_to_lookup
 from src.scrapers.nba.utils.parsing import parse_games, parse_dumped_data_by_day
 
+"""
+This job is run to scrape games *after* they occur
+    - runs in the morning to get results of prev day
+"""
 
 def get_configured_data_path(config_path: str) -> Tuple[str, list[str]]:
     config = configparser.ConfigParser()

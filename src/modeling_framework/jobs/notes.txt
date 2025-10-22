@@ -1,4 +1,0 @@
-will need to train new model on new data,
-to see if model can be improved based on new data.
-there will be some window of data that makes the most sense
-swap out prod model for new model on a threshold for increased performance
