@@ -31,6 +31,11 @@ class API:
         return hashlib.md5(json.dumps(d, sort_keys=True).encode()).hexdigest()
 
     @staticmethod
+    def _hash_url(url: str) -> str:
+        """Create a short hash from a URL to safely use in a filename."""
+        return hashlib.md5(url.encode()).hexdigest()
+
+    @staticmethod
     def _today_iso() -> str:
         return datetime.date.today().isoformat()  # YYYY-MM-DD
 
@@ -90,7 +95,8 @@ class API:
 
         param_hash = API._hash_dict(params) if params else "noparams"
         header_hash = API._hash_dict(headers) if headers else "noheaders"
-        filename = f"{API._today_iso()}_{param_hash}_{header_hash}.json"
+        url_hash = API._hash_url(url) if url else "nourl"
+        filename = f"{API._today_iso()}_{url_hash}_{param_hash}_{header_hash}.json"
         cache_file = os.path.join(self.cache_path, filename)
 
         if os.path.exists(cache_file):

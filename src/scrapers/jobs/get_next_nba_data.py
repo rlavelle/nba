@@ -1,13 +1,18 @@
+import argparse
 import configparser
 import datetime
 import json
 import os
+import time
+
+import pandas as pd
 
 from src.config import CONFIG_PATH
+from src.db.constants import ODDS_SCHEMAS
 from src.db.db_manager import DBManager
-from src.db.utils import insert_error
+from src.db.utils import insert_error, insert_table
 from src.logging.logger import Logger
-from src.utils.date import date_to_dint
+from src.utils.date import date_to_dint, fmt_iso_dint
 from src.scrapers.odds.odds_api import OddsApi
 
 # TODO: validate that this works with 100% success rate
@@ -51,7 +56,7 @@ def get_upcoming_games(logger: Logger):
 
             tmp = {
                'id': game['id'],
-               'date': game['commence_time'],
+               'dint': fmt_iso_dint(game['commence_time']),
                'oods_name': team_name,
                'db_name': match,
                'db_slug': teams.loc[idx,'team_slug'],
@@ -82,8 +87,7 @@ def get_spread_ml(logger: Logger, team_mapping: dict[str,str]):
             for market in bookmaker['markets']:
                 for outcome in market['outcomes']:
                     tmp = {
-                        'id': odd['id'],
-                        'date': odd['commence_time'],
+                        'dint': fmt_iso_dint(odd['commence_time']),
                         'bookmaker': bookmaker['key'],
                         'last_update': bookmaker['last_update'],
                     }
@@ -96,7 +100,7 @@ def get_spread_ml(logger: Logger, team_mapping: dict[str,str]):
                         res_ml.append(tmp)
 
                     elif market['key'] == 'spreads':
-                        tmp['team_name'] = team_id
+                        tmp['team_id'] = team_id
                         tmp['price'] = outcome['price']
                         tmp['point'] = outcome['point']
                         res_spreads.append(tmp)
@@ -140,13 +144,12 @@ def parse_props(logger, id):
         market = bookmaker['markets'][0] # we only request 1 market
         for outcome in market['outcomes']:
             tmp = {
-                'game_id': id,
                 'player_id': _match_player(outcome['description'], players_df),
-                'date': props['commence_time'],
+                'dint': fmt_iso_dint(props['commence_time']),
                 'bookmaker': bookmaker['key'],
                 'last_update': market['last_update'],
                 'odd_type': market['key'],
-                'desc': outcome['name'],
+                'description': outcome['name'],
                 'price': outcome['price'],
                 'point': outcome['point']
             }
@@ -156,6 +159,11 @@ def parse_props(logger, id):
 
 
 if __name__ == "__main__":
+    parser = argparse.ArgumentParser(description='NBA odds data collection')
+    parser.add_argument('--skip-insert', action='store_true', help='Skip the parse & insert step')
+    args = parser.parse_args()
+
+    start = time.time()
     logger = Logger(fpath='cron_path', daily_cron=True)
 
     try:
@@ -176,9 +184,9 @@ if __name__ == "__main__":
         res_spreads, res_ml = get_spread_ml(logger, team_mapping)
 
         res_props = []
-        games = list(set([game['id'] for game in upcoming_games]))
-        for game in games:
-            tmp = parse_props(logger, game)
+        games_ids = list(set([g['id'] for g in upcoming_games]))
+        for game_id in games_ids:
+            tmp = parse_props(logger, game_id)
             res_props.extend(tmp)
 
         res = {
@@ -188,14 +196,29 @@ if __name__ == "__main__":
             'props': res_props
         }
 
-        # TODO: temp dumping until DB is setup
         os.makedirs(date_path, exist_ok=True)
         json.dump(res, open(os.path.join(date_path, f'odds_dump.json'), 'w'))
 
-
-
         logger.log(f'[SUCCESS ODDS PULL]')
+
+        if args.skip_insert:
+            logger.log(f'[SKIP INSERT] Skipping insert for {dint}')
+        else:
+            names = ['player_props', 'game_spreads', 'game_ml']
+            tables = [pd.DataFrame(res_props), pd.DataFrame(res_spreads), pd.DataFrame(res_ml)]
+
+            for table, schema, name in zip(tables, ODDS_SCHEMAS, names):
+                try:
+                    insert_table(table, schema, name, drop=False)
+                    logger.log(f'[INSERT SUCCESS] {name}')
+                except Exception as e:
+                    logger.log(f'[ERROR ON INSERT - {name}]: {e}')
+                    insert_error({'msg': str(e)})
+
+        end = time.time()
+        logger.log(f'[DONE] Runtime: {round((end - start), 2)}s')
+
     except Exception as e:
         logger.log(f'[ERROR]: {e}')
 
-    logger.email_log()
+    #logger.email_log()
