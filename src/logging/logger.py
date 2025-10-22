@@ -1,15 +1,22 @@
 import datetime
 import configparser
+import os
+
 from src.config import CONFIG_PATH
 from src.logging.email_sender import EmailSender
 
 
 class Logger:
-    def __init__(self, fpath:str='path'):
+    def __init__(self, fpath:str='path', daily_cron:bool=False):
         self.config = configparser.ConfigParser()
         self.config.read(CONFIG_PATH)
 
-        self.filename = self.config.get('LOG_PATH', fpath)
+        if daily_cron:
+            today = datetime.date.today().isoformat().replace('-','')
+            log_folder = self.config.get('LOG_PATH', 'logs_folder')
+            self.filename = os.path.join(log_folder, f'log_{today}.txt')
+        else:
+            self.filename = self.config.get('LOG_PATH', fpath)
 
     def log(self, message:str, email=False):
         timestamp = datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')
@@ -24,8 +31,8 @@ class Logger:
     def email_log(self):
         email_sender = EmailSender()
         email_sender.read_recipients_from_file()
-        email_sender.set_subject('Error Log')
-        email_sender.set_body('full error log')
+        email_sender.set_subject('NBA Log')
+        email_sender.set_body('full log')
         email_sender.add_attachment(self.filename)
         email_sender.send_email()
 
