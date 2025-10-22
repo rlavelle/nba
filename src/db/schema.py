@@ -42,19 +42,18 @@ CREATE TABLE IF NOT EXISTS games (
 );"""
 
 PLAYER_PROP_ODDS_SCHEMA = """
-DROP TABLE IF EXISTS "player_odds";
-CREATE TABLE IF NOT EXISTS "player_odds" (
+DROP TABLE IF EXISTS "player_props";
+CREATE TABLE IF NOT EXISTS "player_props" (
     "player_id" INTEGER NOT NULL,
-    "team_id" INTEGER NOT NULL,
-    "game_id" TEXT NOT NULL,
-    "odd_type" TEXT,
+    "dint" INTEGER NOT NULL,
     "bookmaker" TEXT,
     "last_update" TIMESTAMP,
-    "desc" TEXT,
+    "odd_type" TEXT,
+    "description" TEXT,
     "price" FLOAT,
-    "point" FLOAT
+    "point" FLOAT,
     
-    PRIMARY KEY ("game_id", "team_id", "player_id", "bookmaker", "desc", "last_update")
+    PRIMARY KEY ("player_id", "dint", "bookmaker", "last_update", "odd_type", "description", "point")
 );
 """
 
@@ -167,29 +166,27 @@ CREATE TABLE IF NOT EXISTS "player_stats" (
 GAME_ODDS_SPREAD_SCHEMA = """
 DROP TABLE IF EXISTS "game_spreads";
 CREATE TABLE IF NOT EXISTS "game_spreads" (
-    "game_id" TEXT NOT NULL,
     "team_id" TEXT NOT NULL,
-    "is_home" BOOLEAN NOT NULL,
+    "dint" INTEGER NOT NULL,
     "bookmaker" TEXT,
     "last_update" TIMESTAMP,
     "price" FLOAT,
-    "point" FLOAT
+    "point" FLOAT,
     
-    PRIMARY KEY ("game_id", "team_id", "player_id", "bookmaker", "last_update")
+    PRIMARY KEY ("team_id", "dint", "bookmaker", "last_update")
 );
 """
 
 GAME_ODDS_ML_SCHEMA = """
 DROP TABLE IF EXISTS "game_ml";
 CREATE TABLE IF NOT EXISTS "game_ml" (
-    "game_id" TEXT NOT NULL,
     "team_id" TEXT NOT NULL,
-    "is_home" BOOLEAN NOT NULL,
+    "dint" INTEGER NOT NULL,
     "bookmaker" TEXT,
     "last_update" TIMESTAMP,
     "price" FLOAT,
 
-    PRIMARY KEY ("game_id", "team_id", "player_id", "bookmaker", "last_update")
+    PRIMARY KEY ("team_id", "dint", "bookmaker", "last_update")
 );
 """
 

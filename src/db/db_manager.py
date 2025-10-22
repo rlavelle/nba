@@ -146,3 +146,23 @@ class DBManager:
             query += f" AND g.season = '{season}'"
 
         return self.execute_query(query)
+
+    def get_games_with_teams(self, dint:int) -> pd.DataFrame:
+        query = f"""
+            SELECT
+                g.game_id,
+                g.season,
+                g.season_type,
+                g.season_type_code,
+                g.dint,
+                g.date,
+                gs_home.team_id AS home_team_id,
+                gs_away.team_id AS away_team_id
+            FROM games g
+            LEFT JOIN game_stats gs_home
+                ON g.game_id = gs_home.game_id AND gs_home.is_home = 1
+            LEFT JOIN game_stats gs_away
+                ON g.game_id = gs_away.game_id AND gs_away.is_home = 0
+            WHERE g.dint = {dint};
+        """
+        return self.execute_query(query)
