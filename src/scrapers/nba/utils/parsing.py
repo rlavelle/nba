@@ -4,15 +4,13 @@ from typing import Tuple
 
 import pandas as pd
 
-from src.db.constants import SCHEMAS
 from src.db.db_manager import DBManager
-from src.db.utils import insert_table
 from src.logging.logger import Logger
 
 from src.scrapers.nba.utils.formatting import fmt_player_data, fmt_stats_data, fmt_game_data, fmt_team_data, \
     clean_tables
 from src.scrapers.nba.utils.validation import is_bad_game, is_bad_stat
-from src.scrapers.nba.utils.file_io import get_dirs
+from src.utils.file_io import get_dirs
 from src.types.game_types import StatType
 from src.types.nba_types import RawGameStats, GameMeta, GameStats, PlayerMeta, PlayerStats, TeamMeta, RawGameMeta, \
     RawTeamData, RawPlayerData

@@ -5,7 +5,7 @@ import numpy as np
 import pandas as pd
 
 from src.scrapers.nba.constants import SEASON_TYPE_MAP, GAME_DUPE_COLS, PLAYER_DUPE_COLS
-from src.scrapers.nba.utils.date import time_to_minutes
+from src.utils.date import time_to_minutes
 from src.types.nba_types import RawPlayerData, PlayerMeta, PlayerStats, RawGameMeta, GameMeta, RawTeamData, TeamMeta
 
 

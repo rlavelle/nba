@@ -12,11 +12,11 @@ from src.db.utils import insert_error, insert_table
 from src.scrapers.nba.nba_stats_api import NBAStatsApi
 from src.config import CONFIG_PATH
 from src.logging.logger import Logger
-from datetime import datetime, timedelta
+from datetime import datetime
 
 from src.scrapers.nba.utils.api_utils import fetch_and_save_boxscore
 from src.scrapers.nba.utils.validation import is_date_data_complete, is_game_data_complete, is_empty_game, is_bad_game
-from src.scrapers.nba.utils.date import date_to_dint, date_to_lookup
+from src.utils.date import date_to_dint, date_to_lookup
 from src.scrapers.nba.utils.parsing import parse_games, parse_dumped_data_by_day
 
 """

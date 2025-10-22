@@ -1,4 +1,3 @@
-import argparse
 import configparser
 import datetime
 import json
@@ -8,7 +7,7 @@ from src.config import CONFIG_PATH
 from src.db.db_manager import DBManager
 from src.db.utils import insert_error
 from src.logging.logger import Logger
-from src.scrapers.nba.utils.date import date_to_dint
+from src.utils.date import date_to_dint
 from src.scrapers.odds.odds_api import OddsApi
 
 # TODO: validate that this works with 100% success rate
@@ -192,6 +191,8 @@ if __name__ == "__main__":
         # TODO: temp dumping until DB is setup
         os.makedirs(date_path, exist_ok=True)
         json.dump(res, open(os.path.join(date_path, f'odds_dump.json'), 'w'))
+
+
 
         logger.log(f'[SUCCESS ODDS PULL]')
     except Exception as e:

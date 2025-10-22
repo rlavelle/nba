@@ -4,6 +4,7 @@ import os
 
 from src.config import CONFIG_PATH
 from src.logging.email_sender import EmailSender
+from src.utils.date import date_to_dint
 
 
 class Logger:
@@ -12,7 +13,7 @@ class Logger:
         self.config.read(CONFIG_PATH)
 
         if daily_cron:
-            today = datetime.date.today().isoformat().replace('-','')
+            today = date_to_dint(datetime.date)
             log_folder = self.config.get('LOG_PATH', 'logs_folder')
             self.filename = os.path.join(log_folder, f'log_{today}.txt')
         else:

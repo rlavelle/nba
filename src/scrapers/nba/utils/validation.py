@@ -2,7 +2,7 @@ import json
 import os
 
 from src.scrapers.nba.constants import N_STAT_TYPES
-from src.scrapers.nba.utils.file_io import get_dirs, get_files
+from src.utils.file_io import get_dirs, get_files
 from src.types.game_types import StatType
 from src.types.nba_types import RawGameMeta, RawGameStats
 

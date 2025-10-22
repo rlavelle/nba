@@ -11,7 +11,7 @@ from src.config import CONFIG_PATH
 from src.logging.logger import Logger
 from src.scrapers.nba.utils.api_utils import fetch_and_save_boxscore
 from src.scrapers.nba.utils.validation import is_date_data_complete, is_game_data_complete
-from src.scrapers.nba.utils.date import generate_dates, date_to_dint, date_to_lookup
+from src.utils.date import generate_dates, date_to_dint, date_to_lookup
 from src.scrapers.nba.utils.parsing import parse_games
 
 if __name__ == "__main__":

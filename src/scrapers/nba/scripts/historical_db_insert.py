@@ -5,7 +5,7 @@ from src.db.constants import SCHEMAS
 from src.db.utils import insert_table
 from src.logging.logger import Logger
 from src.scrapers.nba.utils.formatting import clean_tables
-from src.scrapers.nba.utils.file_io import get_dirs
+from src.utils.file_io import get_dirs
 from src.scrapers.nba.utils.parsing import parse_dumped_game_data
 
 if __name__ == "__main__":
