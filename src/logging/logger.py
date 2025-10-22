@@ -13,7 +13,7 @@ class Logger:
         self.config.read(CONFIG_PATH)
 
         if daily_cron:
-            today = date_to_dint(datetime.date)
+            today = date_to_dint(datetime.date.today())
             log_folder = self.config.get('LOG_PATH', 'logs_folder')
             self.filename = os.path.join(log_folder, f'log_{today}.txt')
         else:
