@@ -3,8 +3,6 @@ import configparser
 import datetime
 import json
 import os
-import pickle
-import time
 
 from src.config import CONFIG_PATH
 from src.db.db_manager import DBManager
@@ -17,8 +15,9 @@ from src.scrapers.odds.odds_api import OddsApi
 #       it should based on the way that team naming conventions work
 def J(a:str,b:str):
     A = set(a.lower().split(' '))
-    B = set(b.lower().split(" "))
-    return len(A ^ B) / len(A | B)
+    B = set(b.lower().split(' '))
+
+    return len(A.intersection(B)) / len(A.union(B))
 
 def get_upcoming_games(logger: Logger):
     api = OddsApi(logger=logger)
@@ -49,14 +48,14 @@ def get_upcoming_games(logger: Logger):
                 key=lambda pair: J(team_name, pair[1])
             )
 
-            db_id = teams.loc[idx,'team_id'].values[0]
+            db_id = int(teams.loc[idx,'team_id'])
 
             tmp = {
                'id': game['id'],
                'date': game['commence_time'],
                'oods_name': team_name,
                'db_name': match,
-               'db_slug': teams.loc[idx,'team_slug'].values[0],
+               'db_slug': teams.loc[idx,'team_slug'],
                'db_id': db_id,
                'is_home': side == 'home_team'
            }
@@ -69,19 +68,11 @@ def get_upcoming_games(logger: Logger):
 
 def get_spread_ml(logger: Logger, team_mapping: dict[str,str]):
     api = OddsApi(logger=logger)
-    dbm = DBManager(logger=logger)
 
     try:
         odds = api.get_spread_ml()
     except Exception as e:
         logger.log(f'[ERROR ON SPREAD ML API HIT]: {e}')
-        insert_error({'msg': str(e)})
-        return
-
-    try:
-        players = dbm.get_players()
-    except Exception as e:
-        logger.log(f'[ERROR ON READING TEAMS TABLE]: {e}')
         insert_error({'msg': str(e)})
         return
 
@@ -124,16 +115,24 @@ def _match_player(player_name, players_df):
         key=lambda pair: J(player_name, pair[1])
     )
 
-    player_id = players_df.loc[idx, 'player_id'].values[0]
+    player_id = int(players_df.loc[idx, 'player_id'])
     return player_id
 
 def parse_props(logger, id):
     api = OddsApi(logger=logger)
+    dbm = DBManager(logger=logger)
 
     try:
         props = api.get_props(id)
     except Exception as e:
         logger.log(f'[ERROR ON PROPS API HIT]: {e}')
+        insert_error({'msg': str(e)})
+        return
+
+    try:
+        players_df = dbm.get_players()
+    except Exception as e:
+        logger.log(f'[ERROR ON DBM GET PLAYERS]: {e}')
         insert_error({'msg': str(e)})
         return
 
@@ -143,8 +142,8 @@ def parse_props(logger, id):
         for outcome in market['outcomes']:
             tmp = {
                 'game_id': id,
-                'player_id': _match_player(outcome['description']),
-                'date': bookmaker['commence_time'],
+                'player_id': _match_player(outcome['description'], players_df),
+                'date': props['commence_time'],
                 'bookmaker': bookmaker['key'],
                 'last_update': market['last_update'],
                 'odd_type': market['key'],
@@ -158,48 +157,42 @@ def parse_props(logger, id):
 
 
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser(description='NBA odds API')
-    parser.add_argument('--retries', type=int, help='Total retries for cron job (default: 5)')
-    parser.add_argument('--delay', type=int, help='Delay for retries for cron job (default: 10')
-    args = parser.parse_args()
-
-    retries = args.retries if args.retries else 5
-    delay = args.delay if args.delay else 10
-
     logger = Logger(fpath='cron_path')
 
-    config = configparser.ConfigParser()
-    config.read(CONFIG_PATH)
-    data_path = config.get('DATA_PATH', 'odds_folder')
+    try:
+        config = configparser.ConfigParser()
+        config.read(CONFIG_PATH)
+        data_path = config.get('DATA_PATH', 'odds_folder')
+    except Exception as e:
+        logger.log(f'[CONFIG LOAD ERROR]: {e}')
+        insert_error({'msg': str(e)})
+        exit()
+
     date = datetime.date.today()
     dint = date_to_dint(date)
     date_path = os.path.join(data_path, f'{dint}')
 
-    for attempt in range(1, retries + 1):
-        try:
-            logger.log(f'[ATTEMPT {attempt}]')
-            upcoming_games, team_mapping = get_upcoming_games(logger)
-            res_spreads, res_ml = get_spread_ml(logger, team_mapping)
+    try:
+        upcoming_games, team_mapping = get_upcoming_games(logger)
+        res_spreads, res_ml = get_spread_ml(logger, team_mapping)
 
-            res_props = []
-            for game in upcoming_games:
-                tmp = parse_props(logger, team_mapping, game['id'])
-                res_props.extend(tmp)
+        res_props = []
+        games = list(set([game['id'] for game in upcoming_games]))
+        for game in games:
+            tmp = parse_props(logger, game)
+            res_props.extend(tmp)
 
-            res = {
-                'upcoming': upcoming_games,
-                'spreads': res_spreads,
-                'ml': res_ml,
-                'props': res_props
-            }
-            
-            # TODO: temp dumping until DB is setup
-            json.dump(res, open(os.path.join(date_path, f'odds_dump.json'), 'w'))
+        res = {
+            'upcoming': upcoming_games,
+            'spreads': res_spreads,
+            'ml': res_ml,
+            'props': res_props
+        }
 
-            break
-        except Exception as e:
-            if attempt < retries:
-                time.sleep(delay)
-            else:
-                logger.log(f'[COMPLETE FAILURE]')
-                insert_error({'msg': f'complete failure after {retries}: {str(e)}'})
+        # TODO: temp dumping until DB is setup
+        os.makedirs(date_path, exist_ok=True)
+        json.dump(res, open(os.path.join(date_path, f'odds_dump.json'), 'w'))
+
+        logger.log(f'[SUCCESS ODDS PULL]')
+    except Exception as e:
+        logger.log(f'[ERROR]: {e}')

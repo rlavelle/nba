@@ -19,7 +19,7 @@ class OddsApi(API):
         #       opening lines we should get games as far ahead as possible
         today = datetime.date.today()
         tomorrow = today + datetime.timedelta(days=1)
-        self.commenceTimeTo = tomorrow
+        self.commenceTimeTo = tomorrow.isoformat() + 'T00:00:00Z'
 
     def get_spread_ml(self) -> list[EventOdds]:
         markets = 'h2h,spreads'
@@ -57,4 +57,4 @@ class OddsApi(API):
 
         url = f'{self.url}/{self.sport}/events/?'
 
-        return self._get(url=url, params=params)
+        return self._get(url=url, params=params, headers=None)

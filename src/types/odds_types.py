@@ -1,5 +1,6 @@
 from datetime import datetime
-from typing import TypedDict
+from typing import TypedDict, Union
+
 
 class UpcomingGameResponse(TypedDict):
     id: str
@@ -26,7 +27,7 @@ class PropOdds(TypedDict):
 
 class MarketOdds(TypedDict):
     key: str  # h2h, spread, etc.
-    outcomes: list[MoneyLineTeamOdds | SpreadTeamOdds]
+    outcomes: list[Union[MoneyLineTeamOdds,SpreadTeamOdds]]
 
 class BookmakerOdds(TypedDict):
     key: str
@@ -50,4 +51,4 @@ class EventOdds(TypedDict):
     commence_time: datetime
     home_team: str
     away_team: str
-    bookmakers: list[BookmakerOdds|BookmakerPropOdds]
+    bookmakers: list[Union[BookmakerOdds,BookmakerPropOdds]]

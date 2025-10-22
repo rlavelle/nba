@@ -1,7 +1,7 @@
 import configparser
 import random
 import time
-from typing import Any
+from typing import Any, Union
 
 import requests
 
@@ -24,7 +24,7 @@ class API:
     def _get_retry(self,
                    url: str,
                    params: dict[str,str],
-                   headers: dict[str]|None,
+                   headers: Union[dict[str],None],
                    max_retries=10,
                    retry_interval=10,
                    timeout=10) -> dict[str]:
@@ -69,5 +69,5 @@ class API:
         self.logger.log(msg)
         return {'error': f"Failed after {max_retries} attempts"}
 
-    def _get(self, url: str, params: dict[str,str], headers: dict[str]|None) -> dict[str]|Any:
+    def _get(self, url: str, params: dict[str,str], headers: Union[dict[str],None]) -> Union[dict[str],Any]:
         return self._get_retry(url=url, params=params, headers=headers)
