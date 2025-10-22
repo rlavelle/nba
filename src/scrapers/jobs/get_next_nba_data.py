@@ -6,6 +6,7 @@ import os
 import time
 
 import pandas as pd
+from requests.utils import resolve_proxies
 
 from src.config import CONFIG_PATH
 from src.db.constants import ODDS_SCHEMAS
@@ -158,6 +159,44 @@ def parse_props(logger, id):
     return res
 
 
+def get_props(upcoming_games):
+    res_props = []
+    games_ids = list(set([g['id'] for g in upcoming_games]))
+    for game_id in games_ids:
+        tmp = parse_props(logger, game_id)
+        res_props.extend(tmp)
+
+    return res_props
+
+
+def dump_raw_odds(date_path, upcoming_games, res_spreads, res_ml, res_props):
+    res = {
+        'upcoming': upcoming_games,
+        'spreads': res_spreads,
+        'ml': res_ml,
+        'props': res_props
+    }
+
+    os.makedirs(date_path, exist_ok=True)
+    json.dump(res, open(os.path.join(date_path, f'odds_dump.json'), 'w'))
+
+
+def insert_odds_tables(args, res_props, res_spreads, res_ml):
+    if args.skip_insert:
+        logger.log(f'[SKIP INSERT] Skipping insert for {dint}')
+    else:
+        names = ['player_props', 'game_spreads', 'game_ml']
+        tables = [pd.DataFrame(res_props), pd.DataFrame(res_spreads), pd.DataFrame(res_ml)]
+
+        for table, schema, name in zip(tables, ODDS_SCHEMAS, names):
+            try:
+                insert_table(table, schema, name, drop=False)
+                logger.log(f'[INSERT SUCCESS] {name}')
+            except Exception as e:
+                logger.log(f'[ERROR ON INSERT - {name}]: {e}')
+                insert_error({'msg': str(e)})
+
+
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description='NBA odds data collection')
     parser.add_argument('--skip-insert', action='store_true', help='Skip the parse & insert step')
@@ -182,38 +221,13 @@ if __name__ == "__main__":
     try:
         upcoming_games, team_mapping = get_upcoming_games(logger)
         res_spreads, res_ml = get_spread_ml(logger, team_mapping)
+        res_props = get_props(upcoming_games)
 
-        res_props = []
-        games_ids = list(set([g['id'] for g in upcoming_games]))
-        for game_id in games_ids:
-            tmp = parse_props(logger, game_id)
-            res_props.extend(tmp)
-
-        res = {
-            'upcoming': upcoming_games,
-            'spreads': res_spreads,
-            'ml': res_ml,
-            'props': res_props
-        }
-
-        os.makedirs(date_path, exist_ok=True)
-        json.dump(res, open(os.path.join(date_path, f'odds_dump.json'), 'w'))
+        dump_raw_odds(date_path, upcoming_games, res_spreads, res_ml, res_props)
 
         logger.log(f'[SUCCESS ODDS PULL]')
 
-        if args.skip_insert:
-            logger.log(f'[SKIP INSERT] Skipping insert for {dint}')
-        else:
-            names = ['player_props', 'game_spreads', 'game_ml']
-            tables = [pd.DataFrame(res_props), pd.DataFrame(res_spreads), pd.DataFrame(res_ml)]
-
-            for table, schema, name in zip(tables, ODDS_SCHEMAS, names):
-                try:
-                    insert_table(table, schema, name, drop=False)
-                    logger.log(f'[INSERT SUCCESS] {name}')
-                except Exception as e:
-                    logger.log(f'[ERROR ON INSERT - {name}]: {e}')
-                    insert_error({'msg': str(e)})
+        insert_odds_tables(args, res_props, res_spreads, res_ml)
 
         end = time.time()
         logger.log(f'[DONE] Runtime: {round((end - start), 2)}s')
@@ -221,4 +235,4 @@ if __name__ == "__main__":
     except Exception as e:
         logger.log(f'[ERROR]: {e}')
 
-    #logger.email_log()
+    logger.email_log()
