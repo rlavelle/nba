@@ -33,7 +33,7 @@ class OddsApi(API):
 
         url = f'{self.url}/{self.sport}/odds/?'
 
-        return self._get(url=url, params=params, headers=None)
+        return self._get(url=url, params=params, headers=None, cache=True)
 
     def get_props(self, id:str) -> EventOdds:
         markets = 'player_points'
@@ -47,7 +47,7 @@ class OddsApi(API):
 
         url = f'{self.url}/{self.sport}/events/{id}/odds/?'
 
-        return self._get(url=url, params=params, headers=None)
+        return self._get(url=url, params=params, headers=None, cache=True)
 
     def get_upcoming_games(self) -> List[UpcomingGameResponse]:
         params = dict(

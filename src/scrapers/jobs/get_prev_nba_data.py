@@ -161,7 +161,7 @@ if __name__ == "__main__":
     retries = args.retries if args.retries else 5
     delay = args.delay if args.delay else 10
 
-    logger = Logger(fpath='cron_path')
+    logger = Logger(fpath='cron_path', daily_cron=True)
 
     for attempt in range(1, retries + 1):
         try:
@@ -174,3 +174,5 @@ if __name__ == "__main__":
             else:
                 logger.log(f'[COMPLETE FAILURE]')
                 insert_error({'msg': f'complete failure after {retries}: {str(e)}'})
+
+    logger.email_log()

@@ -157,7 +157,7 @@ def parse_props(logger, id):
 
 
 if __name__ == "__main__":
-    logger = Logger(fpath='cron_path')
+    logger = Logger(fpath='cron_path', daily_cron=True)
 
     try:
         config = configparser.ConfigParser()
@@ -196,3 +196,5 @@ if __name__ == "__main__":
         logger.log(f'[SUCCESS ODDS PULL]')
     except Exception as e:
         logger.log(f'[ERROR]: {e}')
+
+    logger.email_log()
