@@ -178,8 +178,16 @@ def dump_raw_odds(date_path, upcoming_games, res_spreads, res_ml, res_props):
     }
 
     os.makedirs(date_path, exist_ok=True)
-    json.dump(res, open(os.path.join(date_path, f'odds_dump.json'), 'w'))
 
+    i = 0
+    while True:
+        filename = f"{date_path}.json" if i == 0 else f"{date_path}_{i}.json"
+        filepath = os.path.join(date_path, filename)
+        if not os.path.exists(filepath):
+            with open(filepath, 'w') as f:
+                json.dump(res, f)
+            break
+        i += 1
 
 def insert_odds_tables(args, res_props, res_spreads, res_ml):
     if args.skip_insert:
