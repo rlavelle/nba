@@ -31,6 +31,8 @@ GAME_FEATURES = [
     'percentageAssistedFGM', 'percentageUnassistedFGM'
 ]
 
+CURRENT_SEASON = '2025-26'
+
 SeasonTypeLiteral = Literal[
     "Regular Season", "Playoffs", "All-Star", "Preseason", "Summer League", "PlayIn", "IST Championship"]
 StatTypeLiteral = Literal["starters", "bench", "statistics"]
