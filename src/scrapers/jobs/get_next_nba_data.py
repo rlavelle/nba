@@ -1,3 +1,4 @@
+#!/usr/bin/env python3
 import argparse
 import configparser
 import datetime
@@ -6,7 +7,6 @@ import os
 import time
 
 import pandas as pd
-from requests.utils import resolve_proxies
 
 from src.config import CONFIG_PATH
 from src.db.constants import ODDS_SCHEMAS
