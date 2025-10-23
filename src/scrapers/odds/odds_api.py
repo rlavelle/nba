@@ -19,7 +19,8 @@ class OddsApi(API):
         #       opening lines we should get games as far ahead as possible
         today = datetime.date.today()
         tomorrow = today + datetime.timedelta(days=1)
-        self.commenceTimeTo = tomorrow.isoformat() + 'T00:00:00Z'
+        self.commenceTimeFrom = tomorrow.isoformat() + 'T00:00:00Z'
+        self.commenceTimeTo = tomorrow.isoformat() + 'T23:59:59Z'
 
     def get_spread_ml(self) -> list[EventOdds]:
         markets = 'h2h,spreads'
@@ -28,6 +29,7 @@ class OddsApi(API):
             regions=self.regions,
             oddsFormat=self.oddsFormat,
             commenceTimeTo=self.commenceTimeTo,
+            commenceTimeFrom=self.commenceTimeFrom,
             apiKey=self.key
         )
 
@@ -42,6 +44,7 @@ class OddsApi(API):
             regions=self.regions,
             oddsFormat=self.oddsFormat,
             commenceTimeTo=self.commenceTimeTo,
+            commenceTimeFrom=self.commenceTimeFrom,
             apiKey=self.key
         )
 
@@ -52,7 +55,8 @@ class OddsApi(API):
     def get_upcoming_games(self) -> List[UpcomingGameResponse]:
         params = dict(
             apiKey=self.key,
-            commenceTimeTo=self.commenceTimeTo
+            commenceTimeTo=self.commenceTimeTo,
+            commenceTimeFrom=self.commenceTimeFrom,
         )
 
         url = f'{self.url}/{self.sport}/events/?'

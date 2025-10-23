@@ -225,7 +225,7 @@ if __name__ == "__main__":
 
         dump_raw_odds(date_path, upcoming_games, res_spreads, res_ml, res_props)
 
-        logger.log(f'[SUCCESS ODDS PULL]')
+        logger.log(f'[SUCCESS ODDS PULL]: {len(upcoming_games)//2} games collected')
 
         insert_odds_tables(args, res_props, res_spreads, res_ml)
 
