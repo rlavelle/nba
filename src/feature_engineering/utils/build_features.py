@@ -122,7 +122,7 @@ def build_game_lvl_fts(logger: Logger = None, cache: bool = False):
 
     if logger:
         end = time.time()
-        logger.log(f'[FEATURE BUILDING COMPLETE]: {round((end - start), 2)/60}s')
+        logger.log(f'[FEATURE BUILDING COMPLETE]: {round((end - start), 2)/60}m')
 
     try:
         with open(gen_cache_file('game_fts'), "wb") as f:
@@ -174,9 +174,13 @@ def build_player_lvl_fts(logger: Logger = None, cache: bool = False):
     player_data = pd.concat([player_data, future_rows], ignore_index=True)
     player_data = build_ft_sets(player_data, PLAYER_FEATURES, 'player_id')
 
+    fts_cols = get_ft_cols(player_data)
+    player_data = player_data.dropna(subset=fts_cols)
+    player_data = player_data[player_data['season'] > player_data['season'].min()].copy()
+
     if logger:
         end = time.time()
-        logger.log(f'[FEATURE BUILDING COMPLETE]: {round((end - start)/60, 2)}s')
+        logger.log(f'[FEATURE BUILDING COMPLETE]: {round((end - start)/60, 2)}m')
 
     try:
         with open(gen_cache_file('player_fts'), "wb") as f:
