@@ -74,7 +74,8 @@ def build_ft_sets(df, fts, id):
 
         features.extend(dependents)
         pipeline = FeaturePipeline(features)
-        return pipeline.transform(df, sort_order=(id, 'season', 'date'))
+        df = pipeline.transform(df, sort_order=(id, 'season', 'date'))
+    return df
 
 
 def build_game_lvl_fts(logger: Logger = None, cache: bool = False):
