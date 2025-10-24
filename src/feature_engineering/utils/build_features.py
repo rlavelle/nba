@@ -26,8 +26,8 @@ def get_ft_cols(df):
 
     return cols
 
-def build_ft_sets(df, features, id, ):
-    for f in features:
+def build_ft_sets(df, fts, id):
+    for f in fts:
         features = [
             ExponentialMovingAvgFeature(span=7, source_col=f, group_col=(id,)),
             ExponentialMovingAvgFeature(span=5, source_col=f, group_col=(id,)),
