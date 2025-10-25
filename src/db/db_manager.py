@@ -38,6 +38,18 @@ class DBManager:
         query = 'SELECT * FROM players;'
         return self.execute_query(query)
 
+    def get_prop_odds(self) -> pd.DataFrame:
+        query = 'SELECT * FROM player_props;'
+        return self.execute_query(query)
+
+    def get_spread_odds(self) -> pd.DataFrame:
+        query = 'SELECT * FROM game_spreads;'
+        return self.execute_query(query)
+
+    def get_money_line_odds(self) -> pd.DataFrame:
+        query = 'SELECT * FROM game_ml;'
+        return self.execute_query(query)
+
     def get_all_player_ids(self) -> np.ndarray:
         query = 'SELECT player_id FROM players;'
         return self.execute_query(query).player_id.values
