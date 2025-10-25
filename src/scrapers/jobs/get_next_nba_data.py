@@ -181,7 +181,7 @@ def dump_raw_odds(date_path, upcoming_games, res_spreads, res_ml, res_props):
 
     i = 0
     while True:
-        filename = f"{date_path}.json" if i == 0 else f"{date_path}_{i}.json"
+        filename = f"odd_dump.json" if i == 0 else f"odds_dump_{i}.json"
         filepath = os.path.join(date_path, filename)
         if not os.path.exists(filepath):
             with open(filepath, 'w') as f:

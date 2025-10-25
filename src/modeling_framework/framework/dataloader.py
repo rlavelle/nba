@@ -49,6 +49,7 @@ class NBADataLoader:
         :param ssns: Tuple of season types to include
         :return: Tuple of (game_stats, game_meta, merged_games) DataFrames
         """
+        # TODO: add 1/0 win value so we can make win streak feature...
         game_stats = self.dbm.get_game_stats()
         game_meta = self.dbm.get_games()
         season_codes = [s.value for s in ssns]

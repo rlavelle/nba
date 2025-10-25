@@ -1,12 +1,7 @@
 import pandas as pd
 
-from src.feature_engineering.utils.build_features import build_game_lvl_fts, build_player_lvl_fts
-from src.logging.logger import Logger
 
-
-def fmt_diff_data(logger: Logger = None, cache: bool = False):
-    data = build_game_lvl_fts(logger=logger, cache=cache)
-
+def fmt_diff_data(data):
     meta_cols = [
         "season", "season_type", "season_type_code", "dint",
         "date", "team_id", "is_home", "stat_type"
@@ -26,8 +21,7 @@ def fmt_diff_data(logger: Logger = None, cache: bool = False):
     return df_diff
 
 
-def fmt_player_data(logger: Logger = None, cache: bool = False):
-    data = build_player_lvl_fts(logger=logger, cache=cache)
+def fmt_player_data(data):
     data = data[(data.points > 0) | (data.points.isna())].copy()
 
     data = data.sort_values(by=['player_id', 'season', 'date'])

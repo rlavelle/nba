@@ -8,6 +8,7 @@ import pandas as pd
 
 from src.config import CONFIG_PATH
 from src.db.utils import insert_error
+from src.feature_engineering.utils.build_features import build_game_lvl_fts, build_player_lvl_fts
 from src.logging.logger import Logger
 from src.modeling_framework.jobs.utils.formatting import fmt_player_data, fmt_diff_data
 from src.modeling_framework.jobs.utils.money_line_model import build_money_line_model
@@ -31,21 +32,23 @@ if __name__ == "__main__":
         exit()
 
     try:
-        train_game_data = fmt_diff_data(logger=logger, cache=True)
+        ft_data = build_game_lvl_fts(logger=logger, cache=True)
+        game_data = fmt_diff_data(ft_data)
     except Exception as e:
         logger.log(f'[ERROR GENERATING GAME DATA]: {e}')
         insert_error({'msg': str(e)})
         exit()
 
     try:
-        train_player_data = fmt_player_data(logger=logger, cache=True)
+        ft_data = build_player_lvl_fts(logger=logger, cache=True)
+        player_data = fmt_player_data(ft_data)
     except Exception as e:
         logger.log(f'[ERROR GENERATING PLAYER DATA]: {e}')
         insert_error({'msg': str(e)})
         exit()
 
-    train_game_data = train_game_data[train_game_data.date < pd.Timestamp(2030, 1, 1)]
-    train_player_data = train_player_data[train_player_data.date < pd.Timestamp(2030, 1, 1)]
+    train_game_data = game_data[game_data.date < pd.Timestamp(2030, 1, 1)]
+    train_player_data = player_data[player_data.date < pd.Timestamp(2030, 1, 1)]
 
     prop_model = None
     spread_model = None
