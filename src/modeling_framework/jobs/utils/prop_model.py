@@ -1,4 +1,4 @@
-
+import numpy as np
 import pandas as pd
 
 from src.modeling_framework.framework.constants import FS_MINUTES, FS_POINTS
@@ -19,7 +19,7 @@ def build_player_prop_model(train_data:pd.DataFrame) -> Model:
 
 def predict_player_prop_model(model:Model,
                               train_data:pd.DataFrame,
-                              test_data:pd.DataFrame) -> pd.DataFrame:
+                              test_data:pd.DataFrame) -> np.array:
 
     minute_model = LinearModel(name='lm_minutes')
     minute_model.build_model()

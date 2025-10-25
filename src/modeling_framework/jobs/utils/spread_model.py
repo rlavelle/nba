@@ -1,5 +1,6 @@
 from typing import Tuple
 
+import numpy as np
 import pandas as pd
 
 from src.feature_engineering.utils.build_features import get_ft_cols
@@ -31,7 +32,7 @@ def build_spread_model(train_data:pd.DataFrame) -> Tuple[Model, Standardizer]:
 
     s = ZScoreStandardizer(idcol=None, features=[target])
     s.fit(train_data)
-    train_data[target] = s.transform(train_data, handle_unseen='global').values
+    # train_data[target] = s.transform(train_data, handle_unseen='global').values
 
     X_train, y_train = train_data[features], train_data[target]
 
@@ -42,7 +43,11 @@ def build_spread_model(train_data:pd.DataFrame) -> Tuple[Model, Standardizer]:
 def predict_spread_model(model:Model,
                          s:ZScoreStandardizer,
                          train_data:pd.DataFrame,
-                         test_data:pd.DataFrame) -> pd.DataFrame:
+                         test_data:pd.DataFrame) -> np.array:
+
+    train_data[target] = train_data.points.abs()
+    test_data[target] = test_data.points.abs()
+
     features = get_ft_cols(test_data)
 
     X_train, y_train = train_data[features], train_data[target]
@@ -52,6 +57,8 @@ def predict_spread_model(model:Model,
     yh_train = model.predict(X_train)
     proj_preds = Model._proj(y_train, yh_train, preds)
 
-    return s.inverse_transform(proj_preds, handle_unseen='global')
+    proj_preds = pd.DataFrame(proj_preds, columns=[target])
+
+    return preds #s.inverse_transform(proj_preds, handle_unseen='global')
 
 

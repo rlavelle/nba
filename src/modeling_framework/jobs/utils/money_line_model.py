@@ -1,3 +1,4 @@
+import numpy as np
 import pandas as pd
 
 from src.feature_engineering.utils.build_features import get_ft_cols
@@ -28,7 +29,9 @@ def build_money_line_model(train_data:pd.DataFrame) -> Model:
     return xgb
 
 def predict_money_line_model(model:Model,
-                             test_data:pd.DataFrame) -> pd.DataFrame:
+                             test_data:pd.DataFrame) -> np.array:
+
+    test_data[target] = (test_data.points > 0).astype(int)
     features = get_ft_cols(test_data)
     X_test = test_data[features]
 

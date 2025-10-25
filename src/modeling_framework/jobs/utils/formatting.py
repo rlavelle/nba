@@ -18,6 +18,7 @@ def fmt_diff_data(data):
     diff_stats = diff_stats.reset_index()
 
     df_diff = pd.concat([meta, diff_stats.drop(columns=["game_id"])], axis=1)
+
     return df_diff
 
 

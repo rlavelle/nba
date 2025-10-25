@@ -115,4 +115,4 @@ class ZScoreStandardizer(Standardizer):
         else:
             standardized = dff[self.features]*self.std + self.mu
 
-        return standardized.reset_index(True)
+        return standardized.reset_index(drop=True)
