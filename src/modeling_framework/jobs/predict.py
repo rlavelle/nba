@@ -228,5 +228,6 @@ if __name__ == "__main__":
 
     end = time.time()
     logger.log(f'[PREDICTION COMPLETE]: {round((end - start), 2)}s')
+    logger.email_log()
 
 
