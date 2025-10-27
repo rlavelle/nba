@@ -233,6 +233,15 @@ if __name__ == "__main__":
 
     logger.log(f'{pretty_print_results(prop_results, spread_results, ml_results)}')
 
+    path = os.path.join(model_path, 'prop', f'{today}')
+    prop_results.to_pickle(os.path.join(path, 'prop_preds.pkl'))
+
+    path = os.path.join(model_path, 'spread', f'{today}')
+    spread_results.to_pickle(os.path.join(path, 'spread_preds.pkl'))
+
+    path = os.path.join(model_path, 'moneyline', f'{today}')
+    ml_results.to_pickle(os.path.join(path, 'ml_preds.pkl'))
+
     end = time.time()
     logger.log(f'[PREDICTION COMPLETE]: {round((end - start), 2)}s')
     logger.email_log()
