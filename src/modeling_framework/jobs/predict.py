@@ -21,16 +21,23 @@ from src.utils.date import date_to_dint
 # TODO: need to experiment with pre season data... will have to go back and scrape
 
 def pretty_print_results(prop_r, spread_r, ml_r):
+    dbm = DBManager()
+    players = dbm.get_players()
+    teams = dbm.get_teams()
+
     if prop_r is not None:
         prop_r = prop_r[~prop_r.price.isna()]
         prop_r = prop_r[['player_id', 'bookmaker', 'odd_type',
                          'description', 'price', 'point', 'preds']].copy()
+        prop_r = pd.merge(prop_r, players, on='player_id', how='left')
 
     if spread_r is not None:
         spread_r = spread_r[['team_id', 'bookmaker', 'price', 'point', 'preds']].copy()
+        spread_r = pd.merge(spread_r, teams, on='team_id', how='left')
 
     if ml_r is not None:
         ml_r = ml_r[['team_id', 'bookmaker', 'price', 'preds']].copy()
+        ml_r = pd.merge(ml_r, teams, on='team_id', how='left')
 
     parts = []
 
