@@ -1,17 +1,11 @@
 # nba
 
-INTRA SEASON PROD:
-- At some point need to put a pin in modeling, take best current attempt, and build prod framework around that
-- finish off data scraping scripts (trigger model building / prediction on complete)
-- iterative model building (if LM) or shadow training (if deep learning)
-- automated results storing (if scraping odds successful)
+TODO:
+- get jobs setup on remote laptop triggered by cron with daily auto pulling from the repo
+	- how to pass across changes in env?
 
-DATA:
-- setup cron job on railway (with retry que + email)
-- use a-shell on iphone as cron job to pull data
-	- have a-shell pull the github before running the job. email self for failure to manual run
+- spread model needs a lot more EDA
+- look into pre season data for all types of modeling
 
-ODDS:
-- scrape draftkings, betmgm, fanduel
-- free tier odds api? pull data right before games (should be under limit, but no opening line)
+- clean up output from current prediction function (team and player names / matchup displays w/ times)
 
