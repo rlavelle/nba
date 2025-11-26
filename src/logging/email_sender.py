@@ -32,7 +32,7 @@ class EmailSender:
 
     def read_recipients_from_file(self):
         with open(self.recipients_file_path, 'r') as file:
-            self.recipients = [line.strip() for line in file]
+            self.recipients = [line.strip().split(',') for line in file]
 
     def set_subject(self, subject):
         self.subject = subject
@@ -43,7 +43,7 @@ class EmailSender:
     def add_attachment(self, file_path):
         self.attachments.append(file_path)
 
-    def send_email(self):
+    def send_email(self, admin=False):
         if not self.recipients:
             raise ValueError("No recipients. Please add recipients using read_recipients_from_file or add_recipient.")
 
@@ -51,7 +51,7 @@ class EmailSender:
             server.starttls()
             server.login(self.sender_email, self.sender_password)
 
-            for recipient in self.recipients:
+            for recipient,user_type in self.recipients:
                 msg = MIMEMultipart()
                 msg['From'] = self.sender_email
                 msg['To'] = recipient
@@ -65,7 +65,12 @@ class EmailSender:
                         part['Content-Disposition'] = f'attachment; filename="{attachment.split("/")[-1]}"'
                         msg.attach(part)
 
-                server.sendmail(self.sender_email, recipient, msg.as_string())
+                # todo: prob an easier way to simplify this
+                if admin:
+                    if user_type == 'admin':
+                        server.sendmail(self.sender_email, recipient, msg.as_string())
+                else:
+                    server.sendmail(self.sender_email, recipient, msg.as_string())
 
 if __name__ == "__main__":
     email_sender = EmailSender()

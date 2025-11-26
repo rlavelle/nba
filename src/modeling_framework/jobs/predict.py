@@ -11,6 +11,7 @@ from src.config import CONFIG_PATH
 from src.db.db_manager import DBManager
 from src.db.utils import insert_error
 from src.feature_engineering.utils.build_features import build_game_lvl_fts, build_player_lvl_fts
+from src.logging.email_sender import EmailSender
 from src.logging.logger import Logger
 from src.modeling_framework.jobs.utils.formatting import fmt_diff_data, fmt_player_data
 from src.modeling_framework.jobs.utils.money_line_model import predict_money_line_model
@@ -60,6 +61,7 @@ def pretty_print_results(prop_r, spread_r, ml_r):
 
 
 def prep_odds(odds: pd.DataFrame, bookmakers: list[str], tomorrow:int):
+    # todo: this is dropping some games in predictions...
     odds = odds[(odds.bookmaker.isin(bookmakers)) & (odds.dint == tomorrow)]
     odds = odds.drop(columns=['last_update', 'dint'])
     return odds.drop_duplicates(keep='first')
@@ -81,9 +83,17 @@ def format_testing_data(odds, test_data):
     return fmt_diff_data(tmp)
 
 
+def send_results(msg):
+    email_sender = EmailSender()
+    email_sender.read_recipients_from_file()
+    email_sender.set_subject(f'NBA Results {datetime.date.today()}')
+    email_sender.set_body(msg)
+    email_sender.send_email(admin=False)
+
+
 if __name__ == "__main__":
     start = time.time()
-    logger = Logger(fpath='cron_path', daily_cron=True)
+    logger = Logger(fpath='cron_path', daily_cron=True, admin=True)
     logger.log(f'[STARTING PREDICTIONS]')
 
     today = date_to_dint(datetime.date.today())
@@ -231,7 +241,9 @@ if __name__ == "__main__":
         if ml_preds is not None:
             ml_results = pd.merge(ml_preds, money_line_odds, on='team_id', how='left')
 
-    logger.log(f'{pretty_print_results(prop_results, spread_results, ml_results)}')
+    msg = f'{pretty_print_results(prop_results, spread_results, ml_results)}'
+    logger.log(msg)
+    send_results(msg)
 
     path = os.path.join(model_path, 'prop', f'{today}')
     prop_results.to_pickle(os.path.join(path, 'prop_preds.pkl'))
@@ -245,5 +257,3 @@ if __name__ == "__main__":
     end = time.time()
     logger.log(f'[PREDICTION COMPLETE]: {round((end - start), 2)}s')
     logger.email_log()
-
-

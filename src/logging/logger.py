@@ -8,9 +8,10 @@ from src.utils.date import date_to_dint
 
 
 class Logger:
-    def __init__(self, fpath:str='path', daily_cron:bool=False):
+    def __init__(self, fpath:str='path', daily_cron:bool=False, admin:bool=False):
         self.config = configparser.ConfigParser()
         self.config.read(CONFIG_PATH)
+        self.admin = admin
 
         if daily_cron:
             today = date_to_dint(datetime.date.today())
@@ -27,7 +28,7 @@ class Logger:
             log_file.write(log_entry)
 
         if email:
-            self.send_error()
+            self.send_error(log_entry)
 
     def email_log(self):
         email_sender = EmailSender()
@@ -35,15 +36,14 @@ class Logger:
         email_sender.set_subject('NBA Log')
         email_sender.set_body('full log')
         email_sender.add_attachment(self.filename)
-        email_sender.send_email()
+        email_sender.send_email(admin=self.admin)
 
-    @staticmethod
-    def send_error(message:str):
+    def send_error(self, message:str):
         email_sender = EmailSender()
         email_sender.read_recipients_from_file()
         email_sender.set_subject('Error Log')
         email_sender.set_body(message)
-        email_sender.send_email()
+        email_sender.send_email(admin=self.admin)
 
 
 if __name__ == "__main__":

@@ -211,7 +211,7 @@ if __name__ == "__main__":
     args = parser.parse_args()
 
     start = time.time()
-    logger = Logger(fpath='cron_path', daily_cron=True)
+    logger = Logger(fpath='cron_path', daily_cron=True, admin=True)
 
     try:
         config = configparser.ConfigParser()

@@ -161,7 +161,7 @@ if __name__ == "__main__":
     retries = args.retries if args.retries else 5
     delay = args.delay if args.delay else 10
 
-    logger = Logger(fpath='cron_path', daily_cron=True)
+    logger = Logger(fpath='cron_path', daily_cron=True, admin=True)
 
     for attempt in range(1, retries + 1):
         try:
