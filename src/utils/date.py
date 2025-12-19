@@ -3,7 +3,7 @@ from datetime import datetime, timedelta
 def fmt_iso_dint(date:str):
     return int(date[:10].replace('-', ''))
 
-def generate_dates(start: datetime, end: datetime = None) -> list[datetime.date]:
+def generate_dates(start: datetime.date, end: datetime.date = None) -> list[datetime.date]:
     start_date = start
     end_date = end if end else datetime.today()
 
