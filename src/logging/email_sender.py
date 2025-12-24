@@ -3,6 +3,9 @@ from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
 from email.mime.application import MIMEApplication
 import configparser
+
+import markdown
+
 from src.config import CONFIG_PATH
 
 
@@ -57,7 +60,7 @@ class EmailSender:
                 msg['To'] = recipient
                 msg['Subject'] = self.subject
 
-                msg.attach(MIMEText(self.body, 'plain'))
+                msg.attach(MIMEText(markdown.markdown(self.body), 'html'))
 
                 for attachment in self.attachments:
                     with open(attachment, 'rb') as file:
