@@ -7,6 +7,8 @@ from src.config import CONFIG_PATH
 from src.db.utils import insert_error
 from src.utils.date import date_to_dint
 
+# TODO: all cache functions should accept dates so that we can cache load
+#       historical data for offline testing
 
 def get_cache_dir():
     config = configparser.ConfigParser()

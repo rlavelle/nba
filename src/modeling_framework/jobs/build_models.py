@@ -20,6 +20,7 @@ if __name__ == "__main__":
     start = time.time()
     logger = Logger(fpath='cron_path', daily_cron=True)
 
+    # TODO: framework to test historical dates required
     today = date_to_dint(datetime.date.today())
 
     try:

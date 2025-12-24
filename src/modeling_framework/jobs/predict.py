@@ -20,8 +20,10 @@ from src.modeling_framework.jobs.utils.spread_model import predict_spread_model
 from src.utils.date import date_to_dint
 
 # TODO: need to experiment with pre season data... will have to go back and scrape
+# TODO: framework to test historical dates required
 
 def pretty_print_results(prop_r, spread_r, ml_r):
+    # TODO: can this be done better with HTML embedding?
     dbm = DBManager()
     players = dbm.get_players()
     teams = dbm.get_teams()
@@ -96,6 +98,7 @@ if __name__ == "__main__":
     logger = Logger(fpath='cron_path', daily_cron=True, admin=True)
     logger.log(f'[STARTING PREDICTIONS]')
 
+    # TODO: historical predicting framework...
     today = date_to_dint(datetime.date.today())
     tomorrow = date_to_dint(datetime.date.today() + datetime.timedelta(days=1))
 
@@ -219,6 +222,8 @@ if __name__ == "__main__":
             insert_error({'msg': str(e)})
 
         if spread_preds is not None:
+            # TODO: somewhere here the opposite side of the spread is getting dropped?
+            #       is it because opposite side spread is tied to away team id??
             spread_results = pd.merge(spread_preds, spread_odds, on='team_id', how='left')
 
     ml_results = None
@@ -239,6 +244,8 @@ if __name__ == "__main__":
             insert_error({'msg': str(e)})
 
         if ml_preds is not None:
+            # TODO: somewhere here the opposite side of the ML is getting dropped?
+            #       is it because opposite side ML is tied to away team id??
             ml_results = pd.merge(ml_preds, money_line_odds, on='team_id', how='left')
 
     msg = f'{pretty_print_results(prop_results, spread_results, ml_results)}'

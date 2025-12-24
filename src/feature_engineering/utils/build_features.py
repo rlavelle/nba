@@ -15,6 +15,10 @@ from src.modeling_framework.framework.dataloader import NBADataLoader
 from src.types.game_types import GAME_FEATURES, CURRENT_SEASON
 from src.types.player_types import PlayerType, PLAYER_FEATURES
 
+# TODO: should not be processing the whole dataset each time for feature building
+#       we only need to compute the last n data points depending on the span / window
+#       this is really slow and sloppy...
+
 
 def get_ft_cols(df):
     wanted_subs = ["_bayes_post", "_1g", "_sma_", "_ema_", "_cum_ssn_", "_hot_streak"]
@@ -79,6 +83,7 @@ def build_ft_sets(df, fts, id):
 
 
 def build_game_lvl_fts(logger: Logger = None, cache: bool = False):
+    # TODO: should take a date so that i can test historicals
     start = time.time()
 
     if logger:
@@ -135,6 +140,7 @@ def build_game_lvl_fts(logger: Logger = None, cache: bool = False):
 
 
 def build_player_lvl_fts(logger: Logger = None, cache: bool = False):
+    # TODO: should take a date so that i can offline test historical
     start = time.time()
 
     if logger:
