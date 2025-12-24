@@ -5,10 +5,9 @@ import pickle
 
 from src.config import CONFIG_PATH
 from src.db.utils import insert_error
+from src.logging.logger import Logger
 from src.utils.date import date_to_dint
 
-# TODO: all cache functions should accept dates so that we can cache load
-#       historical data for offline testing
 
 def get_cache_dir():
     config = configparser.ConfigParser()
@@ -16,13 +15,13 @@ def get_cache_dir():
     return config.get('DATA_PATH', 'cache_folder')
 
 
-def gen_cache_file(f):
-    today = date_to_dint(datetime.date.today())
-    return os.path.join(get_cache_dir(), f'{today}_{f}.pkl')
+def gen_cache_file(f, date:int=None):
+    curr_date = date if date else date_to_dint(datetime.date.today())
+    return os.path.join(get_cache_dir(), f'{curr_date}_{f}.pkl')
 
 
-def check_cache(f, logger=None):
-    cache_file = gen_cache_file(f)
+def check_cache(f:str, logger:Logger=None, date:int=None):
+    cache_file = gen_cache_file(f, date=date)
 
     if os.path.exists(cache_file):
         try:
