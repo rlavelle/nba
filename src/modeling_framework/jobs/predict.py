@@ -248,8 +248,6 @@ if __name__ == "__main__":
     #         insert_error({'msg': str(e)})
     #
     #     if spread_preds is not None:
-    #         # TODO: somewhere here the opposite side of the spread is getting dropped?
-    #         #       is it because opposite side spread is tied to away team id??
     #         spread_results = pd.merge(spread_preds, spread_odds, on='team_id', how='left')
 
     ml_results = None

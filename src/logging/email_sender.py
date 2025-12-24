@@ -55,6 +55,9 @@ class EmailSender:
             server.login(self.sender_email, self.sender_password)
 
             for recipient,user_type in self.recipients:
+                if admin and user_type != 'admin':
+                    continue
+
                 msg = MIMEMultipart()
                 msg['From'] = self.sender_email
                 msg['To'] = recipient
@@ -68,12 +71,7 @@ class EmailSender:
                         part['Content-Disposition'] = f'attachment; filename="{attachment.split("/")[-1]}"'
                         msg.attach(part)
 
-                # todo: prob an easier way to simplify this
-                if admin:
-                    if user_type == 'admin':
-                        server.sendmail(self.sender_email, recipient, msg.as_string())
-                else:
-                    server.sendmail(self.sender_email, recipient, msg.as_string())
+                server.sendmail(self.sender_email, recipient, msg.as_string())
 
 if __name__ == "__main__":
     email_sender = EmailSender()
