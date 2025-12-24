@@ -31,9 +31,10 @@ def pretty_print_results(prop_r, ml_r):
     if prop_r is not None:
         prop_r = prop_r[~prop_r.price.isna()]
         prop_r['delta_pct'] = (prop_r.preds / prop_r.point) - 1
-        prop_r = prop_r[['player_id', 'bookmaker', 'odd_type',
+        prop_r = prop_r[['player_id', 'bookmaker',
                          'description', 'price', 'point', 'preds', 'delta_pct']].copy()
         prop_r = pd.merge(prop_r, players, on='player_id', how='left')
+        prop_r = prop_r.drop(columns=['player_slug'])
 
     # if spread_r is not None:
     #     spread_r = spread_r[['team_id', 'bookmaker', 'price', 'point', 'preds']].copy()
