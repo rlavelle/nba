@@ -2,17 +2,14 @@
 
 TODO:
 - Rewrite model building and prediction framework
-	- needs ability for offline historical testing
 	- dont recompute features daily for the entire dataset
-	- collect both sides of ML and spread (need away team ids)
 
 - Framework to grade previous games predictions, and rolling seasomal predictions
+- Database schema and storage for predictions
 - Criterion for unit betting based on all provided predictions
 
-- Make email output look better (embeded HTML or markdown?)
-
 Backlog:
-- spread model needs a lot more EDA
+- spread model needs a lot more EDA, currently removed from prod
 - look into pre season data for all types of modeling
 - look into win streak as a predictor
 - write process to merge prod DB with local?
