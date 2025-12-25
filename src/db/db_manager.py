@@ -55,7 +55,7 @@ class DBManager:
         return self.execute_query(query)
 
     def get_money_line_results(self) -> pd.DataFrame:
-        query = 'SELECT * FROM game_ml_results;;'
+        query = 'SELECT * FROM game_ml_results;'
         return self.execute_query(query)
 
     def get_all_player_ids(self) -> np.ndarray:

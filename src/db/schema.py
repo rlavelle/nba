@@ -214,7 +214,7 @@ CREATE TABLE IF NOT EXISTS "game_ml_results" (
     "bookmaker" TEXT,
     "price" FLOAT,
     "preds" FLOAT,
-    PRIMARY KEY ("team_id", "dint", "bookmaker")
+    PRIMARY KEY ("team_id", "dint", "bookmaker", "price")
 );
 """
 
