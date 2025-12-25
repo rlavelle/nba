@@ -55,6 +55,18 @@ def get_upcoming_games(logger: Logger):
 
             db_id = int(teams.loc[idx,'team_id'])
 
+            # TODO: the truncation in fmt_iso_dint from GMT is messing up predictions
+            #       half the games are on d1 and the other on d2 depending on start time
+            #       but then the previous days games are also on d1, need to add commence_time
+            #       into the schema for odds data then select "new" games based on GMT conversion
+            #
+            # TODO: how to backfill the whole DB... everything is cached?
+            #       is there a way to reconcile games by seeing which have already happened
+            #       to remove duplicating games that were 03am GMT d1 vs 7pm GMT d1?
+            #
+            # TODO: current hack, base it on last_update as that will be the same as scrape date...
+            #       this wont be gauranteed not to duplicate however if all odds dont update in the same
+            #       GMT day window when the scrape occurs at 6am EST
             tmp = {
                'id': game['id'],
                'dint': fmt_iso_dint(game['commence_time']),

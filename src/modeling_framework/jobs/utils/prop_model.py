@@ -50,7 +50,7 @@ def predict_player_prop_model(model:Model,
 
 def build_player_prop_results(prop_model: Model,
                               prop_odds: pd.DataFrame,
-                              curr_nxt_date: int,
+                              curr_date: int,
                               train_player_data: pd.DataFrame,
                               test_player_data: pd.DataFrame,
                               logger: Logger):
@@ -68,7 +68,7 @@ def build_player_prop_results(prop_model: Model,
 
         if prop_preds is not None:
             # TODO: build this out to all?
-            prop_odds = prep_odds(prop_odds, bookmakers=['draftkings'], tomorrow=curr_nxt_date)
+            prop_odds = prep_odds(prop_odds, bookmakers=['draftkings'], curr_date=curr_date)
             prop_results = pd.merge(prop_preds, prop_odds, on='player_id', how='left')
             logger.log(f'[MISSING PLAYERS FROM MODEL]: {prop_odds.price.isna().sum()}')
 

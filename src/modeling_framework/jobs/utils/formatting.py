@@ -5,6 +5,7 @@ import pandas as pd
 
 from src.db.db_manager import DBManager
 from src.logging.email_sender import EmailSender
+from src.utils.date import fmt_iso_dint
 
 
 def fmt_diff_data(data):
@@ -126,9 +127,14 @@ def pretty_print_results(prop_r, ml_r):
     return md, html
 
 
-def prep_odds(odds: pd.DataFrame, bookmakers: list[str], tomorrow:int):
-    odds = odds[(odds.bookmaker.isin(bookmakers)) & (odds.dint == tomorrow)]
-    odds = odds.drop(columns=['last_update', 'dint'])
+def prep_odds(odds: pd.DataFrame, bookmakers: list[str], curr_date:int):
+    odds = odds.copy()
+
+    # TODO: patch for now... needs a cleaner solution based on commence_time and better
+    #       timezone handling...
+    odds['dint_tmp'] = odds.last_update.apply(fmt_iso_dint)
+    odds = odds[(odds.bookmaker.isin(bookmakers)) & (odds.dint_tmp == curr_date)]
+    odds = odds.drop(columns=['last_update', 'dint', 'dint_tmp'])
     return odds.drop_duplicates(keep='first')
 
 

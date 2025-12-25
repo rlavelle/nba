@@ -38,7 +38,6 @@ if __name__ == "__main__":
 
     date = datetime.datetime.strptime(args.date, '%Y-%m-%d') if args.date else datetime.date.today()
     curr_date = date_to_dint(date)
-    curr_nxt_date = date_to_dint(date + datetime.timedelta(days=1))
 
     try:
         config = configparser.ConfigParser()
@@ -123,14 +122,14 @@ if __name__ == "__main__":
         insert_error({'msg': str(e)})
 
     prop_results = build_player_prop_results(
-        prop_model, prop_odds, curr_nxt_date, train_player_data, test_player_data, logger
+        prop_model, prop_odds, curr_date, train_player_data, test_player_data, logger
     )
 
     # TODO: rebuild spread model
     #spread_results = build_spread_results(...)
 
     ml_results = build_money_line_results(
-        money_line_model, money_line_odds, curr_nxt_date, test_game_data, logger
+        money_line_model, money_line_odds, curr_date, test_game_data, logger
     )
 
     msg_md, msg_html = pretty_print_results(prop_results, ml_results)

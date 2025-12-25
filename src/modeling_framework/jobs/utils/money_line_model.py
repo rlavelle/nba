@@ -53,12 +53,12 @@ def predict_money_line_model(model:Model,
 
 def build_money_line_results(money_line_model: Model,
                              money_line_odds: pd.DataFrame,
-                             curr_nxt_date: int,
+                             curr_date: int,
                              test_game_data: pd.DataFrame,
                              logger: Logger):
     ml_results = None
     if money_line_model is not None and money_line_odds is not None:
-        money_line_odds = prep_odds(money_line_odds, bookmakers=['draftkings'], tomorrow=curr_nxt_date)
+        money_line_odds = prep_odds(money_line_odds, bookmakers=['draftkings'], curr_date=curr_date)
         test_ml_data_home, test_ml_data_away = format_testing_data(money_line_odds, test_game_data)
 
         ml_preds_home = None
