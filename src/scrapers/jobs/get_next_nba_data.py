@@ -53,6 +53,7 @@ def get_upcoming_games(logger: Logger):
                 key=lambda pair: J(team_name, pair[1])
             )
 
+            # TODO: 15015 is the fucking sydney kings... not the SAC kings.... ffs
             db_id = int(teams.loc[idx,'team_id'])
 
             # TODO: the truncation in fmt_iso_dint from GMT is messing up predictions
