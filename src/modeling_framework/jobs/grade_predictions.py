@@ -63,6 +63,29 @@ if __name__ == "__main__":
                          on=['team_id', 'dint'],
                          how='left')
 
+    # sometimes vegas has games i did not if its a bad scrape
+    game_data = game_data[~game_data.game_id.isna()].copy()
+    game_data['vegas_preds'] = 1.0 / game_data.price
+
+    winners_idx = game_data.groupby(game_data.game_id).points.idxmax()
+    pred_winners_idx = game_data.groupby(game_data.game_id).preds.idxmax()
+    vegas_winners_idx = game_data.groupby(game_data.game_id).vegas_preds.idxmax()
+
+    game_data['win'] = 0
+    game_data.loc[winners_idx, 'win'] = 1
+
+    game_data['win_pred'] = 0
+    game_data.loc[pred_winners_idx, 'win_pred'] = 1
+
+    game_data['win_vegas'] = 0
+    game_data.loc[vegas_winners_idx, 'win_vegas'] = 1
+
+    wins = game_data[game_data.win==1].copy()
+    vegas_winners = wins.win_vegas.mean()
+    model_winners = wins.win_pred.mean()
+    n = wins.shape[0]
+
+
 
 
 
