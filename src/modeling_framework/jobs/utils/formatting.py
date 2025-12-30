@@ -79,10 +79,17 @@ def pretty_print_results(prop_r, ml_r):
         prop_r = prop_r[~prop_r.price.isna()]
         prop_r['delta'] = prop_r.preds - prop_r.point
         prop_r['delta_pct'] = (prop_r.preds / prop_r.point) - 1
+
+        prop_r['preds'] = prop_r['preds'].round(1)
+        prop_r['delta'] = prop_r['delta'].round(1)
+        prop_r['delta_pct'] = prop_r['delta_pct'].apply(lambda x: f"{x:.1%}")
+
         prop_r = prop_r[['player_id', 'bookmaker',
-                         'description', 'price', 'point', 'preds', 'delta', 'delta_pct']].copy()
+                         'description', 'price', 'point', 'preds', 'delta']].copy()
         prop_r = pd.merge(prop_r, players, on='player_id', how='left')
         prop_r = prop_r.drop(columns=['player_slug'])
+
+
 
     # if spread_r is not None:
     #     spread_r = spread_r[['team_id', 'bookmaker', 'price', 'point', 'preds']].copy()
@@ -90,9 +97,13 @@ def pretty_print_results(prop_r, ml_r):
 
     if ml_r is not None:
         ml_r['vegas_preds'] = 1 / ml_r.price
-        ml_r['delta'] = ml_r.preds - ml_r.vegas_preds
-        ml_r['delta_pct'] = (ml_r.preds / ml_r.vegas_preds) - 1
-        ml_r = ml_r[['team_id', 'bookmaker', 'price', 'vegas_preds', 'preds', 'delta', 'delta_pct', 'is_home']].copy()
+        ml_r['price_pred'] = 1 / ml_r.preds
+
+        ml_r['price_pred'] = ml_r['price_pred'].round(1)
+        ml_r['vegas_preds'] = ml_r['vegas_preds'].apply(lambda x: f"{x:.1%}")
+        ml_r['preds'] = ml_r['preds'].apply(lambda x: f"{x:.1%}")
+
+        ml_r = ml_r[['team_id', 'bookmaker', 'price', 'price_pred', 'vegas_preds', 'preds', 'is_home']].copy()
         ml_r = pd.merge(ml_r, teams, on='team_id', how='left')
 
     md = f"""
