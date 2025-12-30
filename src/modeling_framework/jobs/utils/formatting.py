@@ -127,16 +127,22 @@ def pretty_print_results(prop_r, ml_r):
     """
 
     html = f"""
-        # NBA Results {datetime.date.today()}
+    # NBA Results {datetime.date.today()}
+    Column descriptions:
+    - price: decimal odds (1.83 means 83 cents back per dollar bet)
+    - point: vegas line for prop bet
+    - preds: model prediction (price_pred is model predicted odds for moneyline)
+    
+    prediction for prop bets is the predicted points scored for a player, prediction for moneyline is percent chance of win, or predicted odds.
 
-        ### PLAYER PROPS
-        {prop_r.to_html(index=False)}
+    ### PLAYER PROPS
+    {prop_r.to_html(index=False)}
 
-        ### MONEY LINE
-        {ml_r.to_html(index=False)}
+    ### MONEY LINE
+    {ml_r.to_html(index=False)}
 
-        -------------------------------------
-        *Report generated automatically, Rowan Lavelle is NOT liable for your losses and gambling addiction.
+    -------------------------------------
+    *Report generated automatically, Rowan Lavelle is NOT liable for your losses and gambling addiction.
     """
 
     if ml_r.empty and prop_r.empty:
