@@ -62,3 +62,26 @@ def predict_spread_model(model:Model,
     return preds #s.inverse_transform(proj_preds, handle_unseen='global')
 
 
+# TODO: rebuild spread model
+# def build_spread_results():
+#     spread_results = None
+#     if spread_model is not None and standardizer is not None and spread_odds is not None:
+#         spread_odds = prep_odds(spread_odds, bookmakers=['draftkings'], tomorrow=curr_nxt_date)
+#         test_spread_data,_ = format_testing_data(spread_odds, test_game_data)
+#
+#         spread_preds = None
+#         try:
+#             spread_preds = predict_spread_model(spread_model,
+#                                                 standardizer,
+#                                                 train_game_data,
+#                                                 test_spread_data)
+#             spread_preds = pd.DataFrame(spread_preds, columns=['preds'])
+#             #spread_preds.columns = ['preds']
+#             spread_preds['team_id'] = test_spread_data.team_id
+#
+#         except Exception as e:
+#             logger.log(f'[ERROR PREDICTING SPREADS]: {e}')
+#             insert_error({'msg': str(e)})
+#
+#         if spread_preds is not None:
+#             spread_results = pd.merge(spread_preds, spread_odds, on='team_id', how='left')

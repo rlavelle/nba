@@ -1,3 +1,4 @@
+import argparse
 import configparser
 import datetime
 import os.path
@@ -20,8 +21,14 @@ if __name__ == "__main__":
     start = time.time()
     logger = Logger(fpath='cron_path', daily_cron=True)
 
-    # TODO: framework to test historical dates required
-    today = date_to_dint(datetime.date.today())
+    parser = argparse.ArgumentParser(description='NBA model building script')
+    parser.add_argument('--date', type=str, help='Date to pull in YYYY-MM-DD format (default: today)')
+    parser.add_argument('--skip-save', action='store_true', help='Skip model saving')
+    parser.add_argument('--offline', action='store_true', help='offline testing')
+    args = parser.parse_args()
+
+    date = datetime.datetime.strptime(args.date, '%Y-%m-%d') if args.date else datetime.date.today()
+    curr_date = date_to_dint(date)
 
     try:
         config = configparser.ConfigParser()
@@ -33,7 +40,7 @@ if __name__ == "__main__":
         exit()
 
     try:
-        ft_data = build_game_lvl_fts(logger=logger, cache=True)
+        ft_data = build_game_lvl_fts(logger=logger, cache=True, date=curr_date)
         game_data = fmt_diff_data(ft_data)
     except Exception as e:
         logger.log(f'[ERROR GENERATING GAME DATA]: {e}')
@@ -41,7 +48,7 @@ if __name__ == "__main__":
         exit()
 
     try:
-        ft_data = build_player_lvl_fts(logger=logger, cache=True)
+        ft_data = build_player_lvl_fts(logger=logger, cache=True, date=curr_date)
         player_data = fmt_player_data(ft_data)
     except Exception as e:
         logger.log(f'[ERROR GENERATING PLAYER DATA]: {e}')
@@ -80,9 +87,9 @@ if __name__ == "__main__":
         logger.log(f'[ERROR BUILDING PROP MODEL]: {e}')
         insert_error({'msg': str(e)})
 
-    if prop_model:
+    if prop_model and not args.skip_insert:
         try:
-            path = os.path.join(model_path, 'prop', f'{today}')
+            path = os.path.join(model_path, 'prop', f'{curr_date}')
             os.makedirs(path, exist_ok=True)
             prop_model.save(fpath=os.path.join(path, f'{prop_model.name}.pkl'))
             logger.log(f'[PROP MODEL SAVED]: {path}')
@@ -90,9 +97,9 @@ if __name__ == "__main__":
             logger.log(f'[ERROR SAVING PROP MODEL]: {e}')
             insert_error({'msg': str(e)})
 
-    if spread_model:
+    if spread_model and not args.skip_insert:
         try:
-            path = os.path.join(model_path, 'spread', f'{today}')
+            path = os.path.join(model_path, 'spread', f'{curr_date}')
             os.makedirs(path, exist_ok=True)
             spread_model.save(fpath=os.path.join(path, f'{spread_model.name}.pkl'))
             pickle.dump(standardizer, open(os.path.join(path, 'std.pkl'), 'wb'))
@@ -101,9 +108,9 @@ if __name__ == "__main__":
             logger.log(f'[ERROR SAVING SPREAD MODEL]: {e}')
             insert_error({'msg': str(e)})
 
-    if money_line_model:
+    if money_line_model and not args.skip_insert:
         try:
-            path = os.path.join(model_path, 'moneyline', f'{today}')
+            path = os.path.join(model_path, 'moneyline', f'{curr_date}')
             os.makedirs(path, exist_ok=True)
             money_line_model.save(fpath=os.path.join(path, f'{money_line_model.name}.pkl'))
             logger.log(f'[MONEYLINE MODEL SAVED]: {path}')
@@ -113,3 +120,6 @@ if __name__ == "__main__":
 
     end = time.time()
     logger.log(f'[MODELS BUILT AND SAVED]: {round((end - start), 2)}s')
+
+    if not args.offline:
+        logger.email_log()

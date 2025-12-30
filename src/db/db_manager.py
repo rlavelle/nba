@@ -50,6 +50,14 @@ class DBManager:
         query = 'SELECT * FROM game_ml;'
         return self.execute_query(query)
 
+    def get_prop_results(self) -> pd.DataFrame:
+        query = 'SELECT * FROM player_prop_results;'
+        return self.execute_query(query)
+
+    def get_money_line_results(self) -> pd.DataFrame:
+        query = 'SELECT * FROM game_ml_results;'
+        return self.execute_query(query)
+
     def get_all_player_ids(self) -> np.ndarray:
         query = 'SELECT player_id FROM players;'
         return self.execute_query(query).player_id.values

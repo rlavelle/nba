@@ -57,6 +57,22 @@ CREATE TABLE IF NOT EXISTS "player_props" (
 );
 """
 
+PLAYER_PROP_RESULTS_SCHEMA = """
+DROP TABLE IF EXISTS "player_prop_results";
+CREATE TABLE IF NOT EXISTS "player_prop_results" (
+    "player_id" INTEGER NOT NULL,
+    "dint" INTEGER NOT NULL,
+    "bookmaker" TEXT,
+    "odd_type" TEXT,
+    "description" TEXT,
+    "price" FLOAT,
+    "point" FLOAT,
+    "preds" FLOAT,
+    
+    PRIMARY KEY ("player_id", "dint", "bookmaker", "odd_type", "description", "price", "point")
+);
+"""
+
 PLAYER_STATS_SCHEMA = """
 DROP TABLE IF EXISTS "player_stats";
 CREATE TABLE IF NOT EXISTS "player_stats" (
@@ -187,6 +203,18 @@ CREATE TABLE IF NOT EXISTS "game_ml" (
     "price" FLOAT,
 
     PRIMARY KEY ("team_id", "dint", "bookmaker", "last_update")
+);
+"""
+
+GAME_ODDS_ML_RESULTS_SCHEMA = """
+DROP TABLE IF EXISTS "game_ml_results";
+CREATE TABLE IF NOT EXISTS "game_ml_results" (
+    "team_id" TEXT NOT NULL,
+    "dint" INTEGER NOT NULL,
+    "bookmaker" TEXT,
+    "price" FLOAT,
+    "preds" FLOAT,
+    PRIMARY KEY ("team_id", "dint", "bookmaker", "price")
 );
 """
 

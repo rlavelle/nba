@@ -24,7 +24,7 @@ This job is run to scrape games *after* they occur
     - runs in the morning to get results of prev day
 """
 
-def get_configured_data_path(config_path: str) -> Tuple[str, list[str]]:
+def get_data_path(config_path: str) -> Tuple[str, list[str]]:
     config = configparser.ConfigParser()
     config.read(config_path)
     return config.get('DATA_PATH', 'games_folder'), config.options('NBA_STATS_ENDPOINTS')
@@ -125,7 +125,7 @@ def update_nba_data(logger: Logger, args):
     api = NBAStatsApi(logger=logger)
 
     try:
-        data_path, boxscores = get_configured_data_path(CONFIG_PATH)
+        data_path, boxscores = get_data_path(CONFIG_PATH)
     except Exception as e:
         logger.log(f'[CONFIG LOAD ERROR]: {e}')
         insert_error({'msg': str(e)})

@@ -3,6 +3,9 @@ from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
 from email.mime.application import MIMEApplication
 import configparser
+
+import markdown
+
 from src.config import CONFIG_PATH
 
 
@@ -52,12 +55,15 @@ class EmailSender:
             server.login(self.sender_email, self.sender_password)
 
             for recipient,user_type in self.recipients:
+                if admin and user_type != 'admin':
+                    continue
+
                 msg = MIMEMultipart()
                 msg['From'] = self.sender_email
                 msg['To'] = recipient
                 msg['Subject'] = self.subject
 
-                msg.attach(MIMEText(self.body, 'plain'))
+                msg.attach(MIMEText(markdown.markdown(self.body), 'html'))
 
                 for attachment in self.attachments:
                     with open(attachment, 'rb') as file:
@@ -65,12 +71,7 @@ class EmailSender:
                         part['Content-Disposition'] = f'attachment; filename="{attachment.split("/")[-1]}"'
                         msg.attach(part)
 
-                # todo: prob an easier way to simplify this
-                if admin:
-                    if user_type == 'admin':
-                        server.sendmail(self.sender_email, recipient, msg.as_string())
-                else:
-                    server.sendmail(self.sender_email, recipient, msg.as_string())
+                server.sendmail(self.sender_email, recipient, msg.as_string())
 
 if __name__ == "__main__":
     email_sender = EmailSender()

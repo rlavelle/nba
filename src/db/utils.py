@@ -6,7 +6,7 @@ import pandas as pd
 from sqlalchemy import create_engine, text
 
 from src.config import CONFIG_PATH, LOCAL
-from src.db.constants import SCHEMAS, ODDS_SCHEMAS
+from src.db.constants import SCHEMAS, ODDS_SCHEMAS, ODDS_RESULTS
 
 
 def get_engine():
@@ -66,5 +66,5 @@ def create_empty_tables(schemas):
 
 
 if __name__ == "__main__":
-    create_empty_tables(ODDS_SCHEMAS)
+    create_empty_tables(ODDS_RESULTS)
     #insert_error({'msg': 'test'})

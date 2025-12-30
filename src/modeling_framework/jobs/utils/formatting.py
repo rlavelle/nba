@@ -1,4 +1,11 @@
+import datetime
+
+import numpy as np
 import pandas as pd
+
+from src.db.db_manager import DBManager
+from src.logging.email_sender import EmailSender
+from src.utils.date import fmt_iso_dint
 
 
 def fmt_diff_data(data):
@@ -38,3 +45,102 @@ def fmt_player_data(data):
     )
     data['ppm_diff'] = data.ppm - data.ppm_s1
     return data
+
+
+# TODO: this is a bad way to reconcile games.... lol
+def format_testing_data(odds, test_data):
+    tmp = test_data.copy()
+
+    odds['is_home'] = (odds.index % 2 == 0).astype(int)
+    odds['game_id'] = odds.index // 2
+
+    tmp = tmp.drop(columns=['is_home', 'game_id'])
+
+    odds['team_id'] = odds.team_id.astype(int)
+    tmp['team_id'] = tmp.team_id.astype(int)
+
+    tmp_home = pd.merge(odds[['is_home', 'game_id', 'team_id']], tmp,  on=['team_id'],  how='left')
+
+    odds['is_home'] = np.where(odds.is_home==1, 0, 1)
+    tmp_away = pd.merge(odds[['is_home', 'game_id', 'team_id']], tmp,  on=['team_id'],  how='left')
+
+    return fmt_diff_data(tmp_home), fmt_diff_data(tmp_away)
+
+
+def pretty_print_results(prop_r, ml_r):
+    prop_r = prop_r.copy()
+    ml_r = ml_r.copy()
+
+    dbm = DBManager()
+    players = dbm.get_players()
+    teams = dbm.get_teams()
+
+    if prop_r is not None:
+        prop_r = prop_r[~prop_r.price.isna()]
+        prop_r['delta'] = prop_r.preds - prop_r.point
+        prop_r['delta_pct'] = (prop_r.preds / prop_r.point) - 1
+        prop_r = prop_r[['player_id', 'bookmaker',
+                         'description', 'price', 'point', 'preds', 'delta', 'delta_pct']].copy()
+        prop_r = pd.merge(prop_r, players, on='player_id', how='left')
+        prop_r = prop_r.drop(columns=['player_slug'])
+
+    # if spread_r is not None:
+    #     spread_r = spread_r[['team_id', 'bookmaker', 'price', 'point', 'preds']].copy()
+    #     spread_r = pd.merge(spread_r, teams, on='team_id', how='left')
+
+    if ml_r is not None:
+        ml_r['vegas_preds'] = 1 / ml_r.price
+        ml_r['delta'] = ml_r.preds - ml_r.vegas_preds
+        ml_r['delta_pct'] = (ml_r.preds / ml_r.vegas_preds) - 1
+        ml_r = ml_r[['team_id', 'bookmaker', 'price', 'vegas_preds', 'preds', 'delta', 'delta_pct', 'is_home']].copy()
+        ml_r = pd.merge(ml_r, teams, on='team_id', how='left')
+
+    md = f"""
+    # NBA Results {datetime.date.today()}
+    
+    ### PLAYER PROPS
+    {prop_r.to_markdown(index=False)}
+    
+    ### MONEY LINE
+    {ml_r.to_markdown(index=False)}
+    
+    -------------------------------------
+    *Report generated automatically, Rowan Lavelle is NOT liable for your losses and gambling addiction.
+    """
+
+    html = f"""
+        # NBA Results {datetime.date.today()}
+
+        ### PLAYER PROPS
+        {prop_r.to_html(index=False)}
+
+        ### MONEY LINE
+        {ml_r.to_html(index=False)}
+
+        -------------------------------------
+        *Report generated automatically, Rowan Lavelle is NOT liable for your losses and gambling addiction.
+    """
+
+    if ml_r.empty and prop_r.empty:
+        return "No odds available today, go home", "No odds available today, go home"
+
+    return md, html
+
+
+def prep_odds(odds: pd.DataFrame, bookmakers: list[str], curr_date:int):
+    odds = odds.copy()
+
+    # TODO: patch for now... needs a cleaner solution based on commence_time and better
+    #       timezone handling...
+    odds['dint_tmp'] = odds.last_update.apply(fmt_iso_dint)
+    odds = odds[(odds.bookmaker.isin(bookmakers)) & (odds.dint_tmp == curr_date)]
+    odds = odds.drop(columns=['last_update', 'dint', 'dint_tmp'])
+    return odds.drop_duplicates(keep='first')
+
+
+def send_results(msg):
+    email_sender = EmailSender()
+    email_sender.read_recipients_from_file()
+    email_sender.set_subject(f'NBA Results {datetime.date.today()}')
+    email_sender.set_body(msg)
+    email_sender.send_email(admin=False)

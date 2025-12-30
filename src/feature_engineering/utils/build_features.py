@@ -82,8 +82,7 @@ def build_ft_sets(df, fts, id):
     return df
 
 
-def build_game_lvl_fts(logger: Logger = None, cache: bool = False):
-    # TODO: should take a date so that i can test historicals
+def build_game_lvl_fts(logger: Logger = None, cache: bool = False, date: int = None):
     start = time.time()
 
     if logger:
@@ -91,9 +90,9 @@ def build_game_lvl_fts(logger: Logger = None, cache: bool = False):
 
     if cache:
         if logger:
-            ret = check_cache(f='game_fts', logger=logger)
+            ret = check_cache(f='game_fts', logger=logger, date=date)
         else:
-            ret = check_cache(f='game_fts')
+            ret = check_cache(f='game_fts', date=date)
 
         if ret is not None:
             return ret
@@ -139,8 +138,7 @@ def build_game_lvl_fts(logger: Logger = None, cache: bool = False):
     return games
 
 
-def build_player_lvl_fts(logger: Logger = None, cache: bool = False):
-    # TODO: should take a date so that i can offline test historical
+def build_player_lvl_fts(logger: Logger = None, cache: bool = False, date: int = None):
     start = time.time()
 
     if logger:
@@ -148,9 +146,9 @@ def build_player_lvl_fts(logger: Logger = None, cache: bool = False):
 
     if cache:
         if logger:
-            ret = check_cache(f='player_fts', logger=logger)
+            ret = check_cache(f='player_fts', logger=logger, date=date)
         else:
-            ret = check_cache(f='player_fts')
+            ret = check_cache(f='player_fts', date=date)
 
         if ret is not None:
             return ret
