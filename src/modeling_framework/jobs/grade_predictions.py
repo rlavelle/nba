@@ -2,27 +2,29 @@ import argparse
 import datetime
 import time
 
-import pandas as pd
-
 from src.db.db_manager import DBManager
 from src.db.utils import insert_error
 from src.logging.logger import Logger
 from src.modeling_framework.framework.dataloader import NBADataLoader
+from src.modeling_framework.jobs.utils.formatting import pretty_print_grading, send_results
+from src.modeling_framework.jobs.utils.grading import format_player_data, format_game_data, hit_by_delta
 from src.types.player_types import PlayerType
 from src.utils.date import date_to_dint
 
 if __name__ == "__main__":
     start = time.time()
     logger = Logger(fpath='cron_path', daily_cron=True, admin=True)
-    logger.log(f'[STARTING PREDICTIONS]')
+    logger.log(f'[STARTING GRADING]')
 
     parser = argparse.ArgumentParser(description='NBA prediction script')
     parser.add_argument('--date', type=str, help='Date to pull in YYYY-MM-DD format (default: today)')
     parser.add_argument('--offline', action='store_true', help='offline testing')
+    parser.add_argument('--admin', action='store_true', help='admin only email')
     args = parser.parse_args()
 
     date = datetime.datetime.strptime(args.date, '%Y-%m-%d') if args.date else datetime.date.today()
     curr_date = date_to_dint(date)
+    prev_date = date_to_dint(date - datetime.timedelta(days=-1))
 
     dbm = DBManager(logger=logger)
 
@@ -44,46 +46,30 @@ if __name__ == "__main__":
     data_loader.load_data()
 
     games = data_loader.get_data('games')
-    games = games.dropna()
-    games = games.sort_values(by=['team_id', 'season', 'date'])
+    game_data = format_game_data(games, ml_results)
 
     player_data = data_loader.get_player_type(ptypes=(PlayerType.STARTER,))
-    player_data = player_data[~player_data.spread.isna()].copy()
-    player_data = player_data.drop(columns=['position'])
-    player_data = player_data.dropna()
-    player_data = player_data.sort_values(by=['player_id', 'season', 'date'])
+    player_data = format_player_data(player_data, prop_results)
 
-    player_data = pd.merge(prop_results, player_data,
-                           on=['player_id', 'dint'],
-                           how='left')
+    # total results
+    game_wins = game_data[game_data.win == 1].copy()
+    player_wins = player_data[player_data.win == 1].copy()
 
-    games['team_id'] = games.team_id.astype(int)
-    ml_results['team_id'] = ml_results.team_id.astype(int)
-    game_data = pd.merge(ml_results, games,
-                         on=['team_id', 'dint'],
-                         how='left')
+    # prev day results
+    game_wins_prev = game_wins[game_wins.dint == prev_date].copy()
+    player_wins_prev = player_wins[player_wins.dint == prev_date].copy()
 
-    # sometimes vegas has games i did not if its a bad scrape
-    game_data = game_data[~game_data.game_id.isna()].copy()
-    game_data['vegas_preds'] = 1.0 / game_data.price
+    msg_md, msg_html = pretty_print_grading(
+        game_wins, player_wins, game_wins_prev, player_wins_prev
+    )
 
-    winners_idx = game_data.groupby(game_data.game_id).points.idxmax()
-    pred_winners_idx = game_data.groupby(game_data.game_id).preds.idxmax()
-    vegas_winners_idx = game_data.groupby(game_data.game_id).vegas_preds.idxmax()
+    logger.log(msg_md)
 
-    game_data['win'] = 0
-    game_data.loc[winners_idx, 'win'] = 1
+    if not args.offline:
+        send_results(f'NBA Bet Grading {datetime.date.today()}', msg_html, args.admin)
 
-    game_data['win_pred'] = 0
-    game_data.loc[pred_winners_idx, 'win_pred'] = 1
-
-    game_data['win_vegas'] = 0
-    game_data.loc[vegas_winners_idx, 'win_vegas'] = 1
-
-    wins = game_data[game_data.win==1].copy()
-    vegas_winners = wins.win_vegas.mean()
-    model_winners = wins.win_pred.mean()
-    n = wins.shape[0]
+    if not args.offline:
+        logger.email_log()
 
 
 

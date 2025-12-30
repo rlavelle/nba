@@ -5,6 +5,7 @@ import pandas as pd
 
 from src.db.db_manager import DBManager
 from src.logging.email_sender import EmailSender
+from src.modeling_framework.jobs.utils.grading import hit_by_delta, get_pct_results
 from src.utils.date import fmt_iso_dint
 
 
@@ -151,6 +152,80 @@ def pretty_print_results(prop_r, ml_r):
     return md, html
 
 
+def pretty_print_grading(game_wins, player_wins, game_wins_prev, player_wins_prev):
+    # TODO: this if very sloppy thrown together, plz fix later, thx
+    rtotal = hit_by_delta(player_wins)
+    rprev = hit_by_delta(player_wins_prev)
+
+    vegas_ml_res, model_ml_res, diff, ngames, model_prop_res, nplayers = get_pct_results(game_wins, player_wins)
+    vegas_ml_res1, model_ml_res1, diff1, ngames1, model_prop_res1, nplayers1 = get_pct_results(game_wins_prev, player_wins_prev)
+
+    md = f"""
+    # NBA Bet Grading {datetime.date.today() - datetime.timedelta(days=-1)}
+       
+    ### Yesterdays Results
+    Vegas favorites: {round(vegas_ml_res1, 2)*100}%
+    Model favorites: {round(model_ml_res1, 2)*100}%
+    Vegas fade Model favorite: {round(diff1, 2)*100}%
+    N Moneyline bets: {ngames1}
+   
+    Model Prop O/U: {round(model_prop_res1, 2)*100}%
+    N Prop bets: {nplayers1}
+   
+    {rprev.to_markdown(index=False)}
+   
+    ### Total Season Results
+    Vegas favorites: {round(vegas_ml_res, 2)*100}%
+    Model favorites: {round(model_ml_res, 2)*100}%
+    Vegas fade Model favorite: {round(diff, 2)*100}%
+    N Moneyline bets: {ngames}
+   
+    Model Prop O/U: {round(model_prop_res, 2)*100}%
+    N Prop bets: {nplayers}
+   
+    {rtotal.to_markdown(index=False)}
+   
+
+    -------------------------------------
+    *Report generated automatically, Rowan Lavelle is NOT liable for your losses and gambling addiction.
+    """
+
+    html = f"""
+    # NBA Bet Grading {datetime.date.today() - datetime.timedelta(days=-1)}
+       
+    ### Yesterdays Results
+    Vegas favorites: {round(vegas_ml_res1, 2)*100}%
+    Model favorites: {round(model_ml_res1, 2)*100}%
+    Vegas fade Model favorite: {round(diff1, 2)*100}%
+    N Moneyline bets: {ngames1}
+   
+    Model Prop O/U: {round(model_prop_res1, 2)*100}%
+    N Prop bets: {nplayers1}
+   
+    {rprev.to_html(index=False)}
+   
+    ### Total Season Results
+    Vegas favorites: {round(vegas_ml_res, 2)*100}%
+    Model favorites: {round(model_ml_res, 2)*100}%
+    Vegas fade Model favorite: {round(diff, 2)*100}%
+    N Moneyline bets: {ngames}
+   
+    Model Prop O/U: {round(model_prop_res, 2)*100}%
+    N Prop bets: {nplayers}
+   
+    {rtotal.to_html(index=False)}
+   
+
+    -------------------------------------
+    *Report generated automatically, Rowan Lavelle is NOT liable for your losses and gambling addiction.
+    """
+
+    if game_wins_prev.empty and player_wins_prev.empty:
+        return "No odds available today, go home", "No odds available today, go home"
+
+    return md, html
+
+
 def prep_odds(odds: pd.DataFrame, bookmakers: list[str], curr_date:int):
     odds = odds.copy()
 
@@ -162,9 +237,9 @@ def prep_odds(odds: pd.DataFrame, bookmakers: list[str], curr_date:int):
     return odds.drop_duplicates(keep='first')
 
 
-def send_results(msg, admin):
+def send_results(subject, msg, admin):
     email_sender = EmailSender()
     email_sender.read_recipients_from_file()
-    email_sender.set_subject(f'NBA Results {datetime.date.today()}')
+    email_sender.set_subject(subject)
     email_sender.set_body(msg)
     email_sender.send_email(admin=admin)

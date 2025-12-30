@@ -137,7 +137,7 @@ if __name__ == "__main__":
     logger.log(msg_md)
 
     if not args.offline:
-        send_results(msg_html, args.admin)
+        send_results(f'NBA Results {datetime.date.today()}', msg_html, args.admin)
 
     if not args.skip_save:
         path = os.path.join(model_path, 'prop', f'{curr_date}')
