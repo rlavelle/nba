@@ -34,6 +34,7 @@ if __name__ == "__main__":
     parser.add_argument('--skip-save', action='store_true', help='Skip result pkl saving')
     parser.add_argument('--skip-insert', action='store_true', help='Skip result table insertion')
     parser.add_argument('--offline', action='store_true', help='offline testing')
+    parser.add_argument('--admin', action='store_true', help='admin only email')
     args = parser.parse_args()
 
     date = datetime.datetime.strptime(args.date, '%Y-%m-%d') if args.date else datetime.date.today()
@@ -136,7 +137,7 @@ if __name__ == "__main__":
     logger.log(msg_md)
 
     if not args.offline:
-        send_results(msg_html)
+        send_results(msg_html, args.admin)
 
     if not args.skip_save:
         path = os.path.join(model_path, 'prop', f'{curr_date}')

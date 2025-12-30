@@ -138,9 +138,9 @@ def prep_odds(odds: pd.DataFrame, bookmakers: list[str], curr_date:int):
     return odds.drop_duplicates(keep='first')
 
 
-def send_results(msg):
+def send_results(msg, admin):
     email_sender = EmailSender()
     email_sender.read_recipients_from_file()
     email_sender.set_subject(f'NBA Results {datetime.date.today()}')
     email_sender.set_body(msg)
-    email_sender.send_email(admin=False)
+    email_sender.send_email(admin=admin)
