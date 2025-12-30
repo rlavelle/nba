@@ -157,6 +157,7 @@ def parse_props(logger, id):
     for bookmaker in props['bookmakers']:
         market = bookmaker['markets'][0] # we only request 1 market
         for outcome in market['outcomes']:
+            # why is JR smith here... 2747...
             tmp = {
                 'player_id': _match_player(outcome['description'], players_df),
                 'dint': fmt_iso_dint(props['commence_time']),
