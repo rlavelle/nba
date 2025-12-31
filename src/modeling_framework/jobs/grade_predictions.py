@@ -24,7 +24,7 @@ if __name__ == "__main__":
 
     date = datetime.datetime.strptime(args.date, '%Y-%m-%d') if args.date else datetime.date.today()
     curr_date = date_to_dint(date)
-    prev_date = date_to_dint(date - datetime.timedelta(days=-1))
+    prev_date = date_to_dint(date + datetime.timedelta(days=-1))
 
     dbm = DBManager(logger=logger)
 
@@ -33,6 +33,7 @@ if __name__ == "__main__":
     except Exception as e:
         logger.log(f'[ERROR LOADING PROP RESULTS]: {e}')
         insert_error({'msg': str(e)})
+        logger.email_log()
         exit()
 
     try:
@@ -40,6 +41,7 @@ if __name__ == "__main__":
     except Exception as e:
         logger.log(f'[ERROR LOADING MONEYLINE RESULTS]: {e}')
         insert_error({'msg': str(e)})
+        logger.email_log()
         exit()
 
     data_loader = NBADataLoader()

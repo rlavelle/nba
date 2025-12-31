@@ -161,7 +161,7 @@ def pretty_print_grading(game_wins, player_wins, game_wins_prev, player_wins_pre
     vegas_ml_res1, model_ml_res1, diff1, ngames1, model_prop_res1, nplayers1 = get_pct_results(game_wins_prev, player_wins_prev)
 
     md = f"""
-    # NBA Bet Grading {datetime.date.today() - datetime.timedelta(days=-1)}
+    # NBA Bet Grading {datetime.date.today() + datetime.timedelta(days=-1)}
        
     ### Yesterdays Results
     Vegas favorites: {round(vegas_ml_res1, 2)*100}%
@@ -191,7 +191,7 @@ def pretty_print_grading(game_wins, player_wins, game_wins_prev, player_wins_pre
     """
 
     html = f"""
-    # NBA Bet Grading {datetime.date.today() - datetime.timedelta(days=-1)}
+    # NBA Bet Grading {datetime.date.today() + datetime.timedelta(days=-1)}
        
     ### Yesterdays Results
     Vegas favorites: {round(vegas_ml_res1, 2)*100}%
