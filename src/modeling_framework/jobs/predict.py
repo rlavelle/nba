@@ -48,6 +48,7 @@ if __name__ == "__main__":
     except Exception as e:
         logger.log(f'[CONFIG LOAD ERROR]: {e}')
         insert_error({'msg': str(e)})
+        logger.email_log()
         exit()
 
     try:
@@ -55,6 +56,7 @@ if __name__ == "__main__":
     except Exception as e:
         logger.log(f'[ERROR GENERATING GAME DATA]: {e}')
         insert_error({'msg': str(e)})
+        logger.email_log()
         exit()
 
     try:
@@ -63,6 +65,7 @@ if __name__ == "__main__":
     except Exception as e:
         logger.log(f'[ERROR GENERATING PLAYER DATA]: {e}')
         insert_error({'msg': str(e)})
+        logger.email_log()
         exit()
 
     test_game_data = game_data[game_data.date == pd.Timestamp(2030, 1, 1)]
