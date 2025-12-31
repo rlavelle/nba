@@ -39,7 +39,7 @@ if __name__ == "__main__":
 
     date = datetime.datetime.strptime(args.date, '%Y-%m-%d') if args.date else datetime.date.today()
     curr_date = date_to_dint(date)
-    nxt_date = date_to_dint(date + datetime.timedelta(days=1))
+    nxt_date = curr_date #date_to_dint(date + datetime.timedelta(days=1))
 
     try:
         config = configparser.ConfigParser()
