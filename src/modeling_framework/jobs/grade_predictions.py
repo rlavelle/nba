@@ -44,14 +44,20 @@ if __name__ == "__main__":
         logger.email_log()
         exit()
 
-    data_loader = NBADataLoader()
-    data_loader.load_data()
+    try:
+        data_loader = NBADataLoader()
+        data_loader.load_data()
 
-    games = data_loader.get_data('games')
-    game_data = format_game_data(games, ml_results)
+        games = data_loader.get_data('games')
+        game_data = format_game_data(games, ml_results)
 
-    player_data = data_loader.get_player_type(ptypes=(PlayerType.STARTER,))
-    player_data = format_player_data(player_data, prop_results)
+        player_data = data_loader.get_player_type(ptypes=(PlayerType.STARTER,))
+        player_data = format_player_data(player_data, prop_results)
+    except Exception as e:
+        logger.log(f'[ERROR LOADING FROM NBA DATA LOADER]: {e}')
+        insert_error({'msg': str(e)})
+        logger.email_log()
+        exit()
 
     # total results
     game_wins = game_data[game_data.win == 1].copy()
@@ -61,11 +67,17 @@ if __name__ == "__main__":
     game_wins_prev = game_wins[game_wins.dint == prev_date].copy()
     player_wins_prev = player_wins[player_wins.dint == prev_date].copy()
 
-    msg_md, msg_html = pretty_print_grading(
-        game_wins, player_wins, game_wins_prev, player_wins_prev
-    )
-
-    logger.log(msg_md)
+    try:
+        msg_md, msg_html = pretty_print_grading(
+            game_wins, player_wins, game_wins_prev, player_wins_prev
+        )
+        logger.log(msg_md)
+        
+    except Exception as e:
+        logger.log(f'[ERROR ON PRETTY PRINT]: {e}')
+        insert_error({'msg': str(e)})
+        logger.email_log()
+        exit()
 
     if not args.offline:
         send_results(f'NBA Bet Grading {datetime.date.today()}', msg_html, args.admin)

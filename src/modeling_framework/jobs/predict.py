@@ -72,7 +72,14 @@ if __name__ == "__main__":
     test_player_data = player_data[player_data.date == pd.Timestamp(2030, 1, 1)]
 
     train_game_data = game_data[game_data.date < pd.Timestamp(2030, 1, 1)]
-    train_game_data = fmt_diff_data(train_game_data)
+
+    try:
+        train_game_data = fmt_diff_data(train_game_data)
+    except Exception as e:
+        logger.log(f'[ERROR FORMATTING TRAINING GAME DATA]: {e}')
+        insert_error({'msg': str(e)})
+        logger.email_log()
+        exit()
 
     train_player_data = player_data[player_data.date < pd.Timestamp(2030, 1, 1)]
 
@@ -100,8 +107,8 @@ if __name__ == "__main__":
         path = os.path.join(model_path, 'moneyline', f'{curr_date}')
         money_line_model = pickle.load(open(os.path.join(path, f'xgb_ml_model.pkl'), 'rb'))
     except Exception as e:
-            logger.log(f'[ERROR LOADING MONEYLINE MODEL]: {e}')
-            insert_error({'msg': str(e)})
+        logger.log(f'[ERROR LOADING MONEYLINE MODEL]: {e}')
+        insert_error({'msg': str(e)})
 
     dbm = DBManager(logger=logger)
     # spread_odds = None
@@ -138,8 +145,17 @@ if __name__ == "__main__":
         money_line_model, money_line_odds, nxt_date, test_game_data, logger
     )
 
-    msg_md, msg_html = pretty_print_results(prop_results, ml_results)
-    logger.log(msg_md)
+    try:
+        msg_md, msg_html = pretty_print_results(prop_results, ml_results)
+        logger.log(msg_md)
+    except Exception as e:
+        logger.log(f'[ERROR ON PRETTY PRINT]: {e}')
+        insert_error({'msg': str(e)})
+
+        if not args.offline:
+            logger.email_log()
+
+        exit()
 
     if not args.offline:
         send_results(f'NBA Results {datetime.date.today()}', msg_html, args.admin)
