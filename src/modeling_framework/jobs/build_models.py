@@ -90,7 +90,7 @@ if __name__ == "__main__":
         logger.log(f'[ERROR BUILDING PROP MODEL]: {e}')
         insert_error({'msg': str(e)})
 
-    if prop_model and not args.skip_insert:
+    if prop_model and not args.skip_save:
         try:
             path = os.path.join(model_path, 'prop', f'{curr_date}')
             os.makedirs(path, exist_ok=True)
@@ -100,7 +100,7 @@ if __name__ == "__main__":
             logger.log(f'[ERROR SAVING PROP MODEL]: {e}')
             insert_error({'msg': str(e)})
 
-    if spread_model and not args.skip_insert:
+    if spread_model and not args.skip_save:
         try:
             path = os.path.join(model_path, 'spread', f'{curr_date}')
             os.makedirs(path, exist_ok=True)
@@ -111,7 +111,7 @@ if __name__ == "__main__":
             logger.log(f'[ERROR SAVING SPREAD MODEL]: {e}')
             insert_error({'msg': str(e)})
 
-    if money_line_model and not args.skip_insert:
+    if money_line_model and not args.skip_save:
         try:
             path = os.path.join(model_path, 'moneyline', f'{curr_date}')
             os.makedirs(path, exist_ok=True)
