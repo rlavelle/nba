@@ -72,7 +72,7 @@ if __name__ == "__main__":
             game_wins, player_wins, game_wins_prev, player_wins_prev
         )
         logger.log(msg_md)
-        
+
     except Exception as e:
         logger.log(f'[ERROR ON PRETTY PRINT]: {e}')
         insert_error({'msg': str(e)})
