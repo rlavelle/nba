@@ -231,6 +231,7 @@ def prep_odds(odds: pd.DataFrame, bookmakers: list[str], curr_date:int):
 
     # TODO: patch for now... needs a cleaner solution based on commence_time and better
     #       timezone handling...
+    #       this does not work at all, patched the patch
     odds['dint_tmp'] = odds.last_update.apply(fmt_iso_dint)
     odds = odds[(odds.bookmaker.isin(bookmakers)) & (odds.dint_tmp == curr_date)]
     odds = odds.drop(columns=['last_update', 'dint', 'dint_tmp'])
