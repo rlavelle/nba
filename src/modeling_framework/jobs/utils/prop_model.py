@@ -35,6 +35,7 @@ def predict_player_prop_model(model:Model,
                               train_data:pd.DataFrame,
                               test_data:pd.DataFrame) -> np.array:
 
+    test_data = test_data.copy()
     minute_model = LinearModel(name='lm_minutes')
     minute_model.build_model()
     minute_model.train(train_data[FS_MINUTES], train_data.minutes)

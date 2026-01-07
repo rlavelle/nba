@@ -25,6 +25,7 @@ if __name__ == "__main__":
     parser.add_argument('--date', type=str, help='Date to pull in YYYY-MM-DD format (default: today)')
     parser.add_argument('--skip-save', action='store_true', help='Skip model saving')
     parser.add_argument('--offline', action='store_true', help='offline testing')
+    parser.add_argument('--recent', action='store_true', help='use most recent feature cache file')
     args = parser.parse_args()
 
     date = datetime.datetime.strptime(args.date, '%Y-%m-%d') if args.date else datetime.date.today()
@@ -41,7 +42,7 @@ if __name__ == "__main__":
         exit()
 
     try:
-        ft_data = build_game_lvl_fts(logger=logger, cache=True, date=curr_date)
+        ft_data = build_game_lvl_fts(logger=logger, cache=True, date=curr_date, recent=args.recent)
         game_data = fmt_diff_data(ft_data)
     except Exception as e:
         logger.log(f'[ERROR GENERATING GAME DATA]: {e}')
@@ -50,7 +51,7 @@ if __name__ == "__main__":
         exit()
 
     try:
-        ft_data = build_player_lvl_fts(logger=logger, cache=True, date=curr_date)
+        ft_data = build_player_lvl_fts(logger=logger, cache=True, date=curr_date, recent=args.recent)
         player_data = fmt_player_data(ft_data)
     except Exception as e:
         logger.log(f'[ERROR GENERATING PLAYER DATA]: {e}')

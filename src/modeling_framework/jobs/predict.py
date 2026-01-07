@@ -12,6 +12,7 @@ from src.config import CONFIG_PATH
 from src.db.db_manager import DBManager
 from src.db.utils import insert_error
 from src.feature_engineering.utils.build_features import build_game_lvl_fts, build_player_lvl_fts
+from src.feature_engineering.utils.cache import gen_cache_file
 from src.logging.logger import Logger
 from src.modeling_framework.jobs.utils.formatting import fmt_diff_data, fmt_player_data, \
     pretty_print_results, send_results
@@ -35,11 +36,14 @@ if __name__ == "__main__":
     parser.add_argument('--skip-insert', action='store_true', help='Skip result table insertion')
     parser.add_argument('--offline', action='store_true', help='offline testing')
     parser.add_argument('--admin', action='store_true', help='admin only email')
+    parser.add_argument('--clean-up', action='store_true', help='remove previous feature cache')
+    parser.add_argument('--recent', action='store_true', help='use most recent feature cache file')
     args = parser.parse_args()
 
     date = datetime.datetime.strptime(args.date, '%Y-%m-%d') if args.date else datetime.date.today()
     curr_date = date_to_dint(date)
     nxt_date = curr_date #date_to_dint(date + datetime.timedelta(days=1))
+    prv_date = date_to_dint(date - datetime.timedelta(days=1))
 
     try:
         config = configparser.ConfigParser()
@@ -52,7 +56,7 @@ if __name__ == "__main__":
         exit()
 
     try:
-        game_data = build_game_lvl_fts(logger=logger, cache=True, date=curr_date)
+        game_data = build_game_lvl_fts(logger=logger, cache=True, date=curr_date, recent=args.recent)
     except Exception as e:
         logger.log(f'[ERROR GENERATING GAME DATA]: {e}')
         insert_error({'msg': str(e)})
@@ -60,7 +64,7 @@ if __name__ == "__main__":
         exit()
 
     try:
-        ft_data = build_player_lvl_fts(logger=logger, cache=True, date=curr_date)
+        ft_data = build_player_lvl_fts(logger=logger, cache=True, date=curr_date, recent=args.recent)
         player_data = fmt_player_data(ft_data)
     except Exception as e:
         logger.log(f'[ERROR GENERATING PLAYER DATA]: {e}')
@@ -185,6 +189,30 @@ if __name__ == "__main__":
         except Exception as e:
             logger.log(f'[ERROR INSERTING PROP RESULTS]: {e}')
             insert_error({'msg': str(e)})
+
+    if args.clean_up:
+        fpath_game = gen_cache_file(f='game_fts', date=prv_date)
+        fpath_plyr = gen_cache_file(f='player_fts', date=prv_date)
+
+        if os.path.exists(fpath_game):
+            try:
+                os.remove(fpath_game)
+                logger.log(f'[SUCCESSFUL GAME CACHE CLEANUP]')
+            except Exception as e:
+                logger.log(f'[ERROR ON GAME CACHE CLEANUP]: {e}')
+                insert_error({'msg': str(e)})
+        else:
+            logger.log(f'[NO FILE FOUND]: {fpath_game}')
+
+        if os.path.exists(fpath_plyr):
+            try:
+                os.remove(fpath_plyr)
+                logger.log(f'[SUCCESSFUL PLAYER CACHE CLEANUP]')
+            except Exception as e:
+                logger.log(f'[ERROR ON PLAYER CACHE CLEANUP]: {e}')
+                insert_error({'msg': str(e)})
+        else:
+            logger.log(f'[NO FILE FOUND]: {fpath_plyr}')
 
     end = time.time()
     logger.log(f'[PREDICTION COMPLETE]: {round((end - start), 2)}s')

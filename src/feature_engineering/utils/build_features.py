@@ -1,6 +1,8 @@
+import datetime
 import pickle
 import time
 
+import numpy as np
 import pandas as pd
 
 from src.feature_engineering.base import FeaturePipeline
@@ -14,6 +16,8 @@ from src.logging.logger import Logger
 from src.modeling_framework.framework.dataloader import NBADataLoader
 from src.types.game_types import GAME_FEATURES, CURRENT_SEASON
 from src.types.player_types import PlayerType, PLAYER_FEATURES
+from src.utils.date import dint_to_date
+
 
 # TODO: should not be processing the whole dataset each time for feature building
 #       we only need to compute the last n data points depending on the span / window
@@ -82,7 +86,7 @@ def build_ft_sets(df, fts, id):
     return df
 
 
-def build_game_lvl_fts(logger: Logger = None, cache: bool = False, date: int = None):
+def build_game_lvl_fts(logger: Logger = None, cache: bool = False, date: int = None, recent: bool = False):
     start = time.time()
 
     if logger:
@@ -90,11 +94,17 @@ def build_game_lvl_fts(logger: Logger = None, cache: bool = False, date: int = N
 
     if cache:
         if logger:
-            ret = check_cache(f='game_fts', logger=logger, date=date)
+            ret = check_cache(f='game_fts', logger=logger, date=date, recent=recent)
         else:
-            ret = check_cache(f='game_fts', date=date)
+            ret = check_cache(f='game_fts', date=date, recent=recent)
 
         if ret is not None:
+            # when pulling from recent cache need to remove future data,
+            # but keep nulled future rows
+            if date and recent:
+                ret = ret[ret.date <= dint_to_date(date)].copy()
+                ret.loc[ret.date == dint_to_date(date), 'date'] = pd.Timestamp('2030-01-01')
+
             return ret
 
     data_loader = NBADataLoader()
@@ -129,7 +139,7 @@ def build_game_lvl_fts(logger: Logger = None, cache: bool = False, date: int = N
         logger.log(f'[FEATURE BUILDING COMPLETE]: {round((end - start), 2)/60}m')
 
     try:
-        with open(gen_cache_file('game_fts'), "wb") as f:
+        with open(gen_cache_file('game_fts', date), "wb") as f:
             pickle.dump(games, f)
     except Exception as e:
         if logger:
@@ -138,7 +148,7 @@ def build_game_lvl_fts(logger: Logger = None, cache: bool = False, date: int = N
     return games
 
 
-def build_player_lvl_fts(logger: Logger = None, cache: bool = False, date: int = None):
+def build_player_lvl_fts(logger: Logger = None, cache: bool = False, date: int = None, recent: bool = False):
     start = time.time()
 
     if logger:
@@ -146,11 +156,17 @@ def build_player_lvl_fts(logger: Logger = None, cache: bool = False, date: int =
 
     if cache:
         if logger:
-            ret = check_cache(f='player_fts', logger=logger, date=date)
+            ret = check_cache(f='player_fts', logger=logger, date=date, recent=recent)
         else:
-            ret = check_cache(f='player_fts', date=date)
+            ret = check_cache(f='player_fts', date=date, recent=recent)
 
         if ret is not None:
+            # when pulling from recent cache need to remove future data,
+            # but keep nulled future rows
+            if date and recent:
+                ret = ret[ret.date <= dint_to_date(date)].copy()
+                ret.loc[ret.date == dint_to_date(date), 'date'] = pd.Timestamp('2030-01-01')
+
             return ret
 
     data_loader = NBADataLoader()
@@ -187,7 +203,7 @@ def build_player_lvl_fts(logger: Logger = None, cache: bool = False, date: int =
         logger.log(f'[FEATURE BUILDING COMPLETE]: {round((end - start)/60, 2)}m')
 
     try:
-        with open(gen_cache_file('player_fts'), "wb") as f:
+        with open(gen_cache_file('player_fts', date), "wb") as f:
             pickle.dump(player_data, f)
     except Exception as e:
         if logger:
