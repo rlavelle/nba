@@ -1,11 +1,10 @@
 # nba
 
 TODO:
-- Rewrite model building and prediction framework
-	- dont recompute features daily for the entire dataset
-
-- Framework to grade previous games predictions, and rolling seasonal predictions
 - Criterion for unit betting based on all provided predictions
+- Baseline models reported with actuals
+- Probability score for prop bets
+- Why are some players consistently over or under predicted?
 
 Backlog:
 - spread model needs a lot more EDA, currently removed from prod
