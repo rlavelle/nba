@@ -1,6 +1,7 @@
 # nba
 
 TODO:
+- Method to flash data from server to local
 - Criterion for unit betting based on all provided predictions
 - Baseline models reported with actuals
 - Probability score for prop bets
