@@ -17,6 +17,7 @@ from src.modeling_framework.jobs.utils.prop_model import build_player_prop_model
 from src.modeling_framework.jobs.utils.spread_model import build_spread_model
 from src.utils.date import date_to_dint
 
+
 if __name__ == "__main__":
     start = time.time()
     logger = Logger(fpath='cron_path', daily_cron=True)
@@ -26,6 +27,7 @@ if __name__ == "__main__":
     parser.add_argument('--skip-save', action='store_true', help='Skip model saving')
     parser.add_argument('--offline', action='store_true', help='offline testing')
     parser.add_argument('--recent', action='store_true', help='use most recent feature cache file')
+    parser.add_argument('--cache', action='store_true', help='use cache')
     args = parser.parse_args()
 
     date = datetime.datetime.strptime(args.date, '%Y-%m-%d') if args.date else datetime.date.today()
@@ -38,25 +40,31 @@ if __name__ == "__main__":
     except Exception as e:
         logger.log(f'[CONFIG LOAD ERROR]: {e}')
         insert_error({'msg': str(e)})
-        logger.email_log()
+
+        if not args.offline:
+            logger.email_log()
         exit()
 
     try:
-        ft_data = build_game_lvl_fts(logger=logger, cache=True, date=curr_date, recent=args.recent)
+        ft_data = build_game_lvl_fts(logger=logger, cache=args.cache, date=curr_date, recent=args.recent)
         game_data = fmt_diff_data(ft_data)
     except Exception as e:
         logger.log(f'[ERROR GENERATING GAME DATA]: {e}')
         insert_error({'msg': str(e)})
-        logger.email_log()
+
+        if not args.offline:
+            logger.email_log()
         exit()
 
     try:
-        ft_data = build_player_lvl_fts(logger=logger, cache=True, date=curr_date, recent=args.recent)
+        ft_data = build_player_lvl_fts(logger=logger, cache=args.cache, date=curr_date, recent=args.recent)
         player_data = fmt_player_data(ft_data)
     except Exception as e:
         logger.log(f'[ERROR GENERATING PLAYER DATA]: {e}')
         insert_error({'msg': str(e)})
-        logger.email_log()
+
+        if not args.offline:
+            logger.email_log()
         exit()
 
     train_game_data = game_data[game_data.date < pd.Timestamp(2030, 1, 1)]

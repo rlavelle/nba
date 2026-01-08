@@ -38,6 +38,7 @@ if __name__ == "__main__":
     parser.add_argument('--admin', action='store_true', help='admin only email')
     parser.add_argument('--clean-up', action='store_true', help='remove previous feature cache')
     parser.add_argument('--recent', action='store_true', help='use most recent feature cache file')
+    parser.add_argument('--cache', action='store_true', help='use cache')
     args = parser.parse_args()
 
     date = datetime.datetime.strptime(args.date, '%Y-%m-%d') if args.date else datetime.date.today()
@@ -56,7 +57,7 @@ if __name__ == "__main__":
         exit()
 
     try:
-        game_data = build_game_lvl_fts(logger=logger, cache=True, date=curr_date, recent=args.recent)
+        game_data = build_game_lvl_fts(logger=logger, cache=args.cache, date=curr_date, recent=args.recent)
     except Exception as e:
         logger.log(f'[ERROR GENERATING GAME DATA]: {e}')
         insert_error({'msg': str(e)})
@@ -64,7 +65,7 @@ if __name__ == "__main__":
         exit()
 
     try:
-        ft_data = build_player_lvl_fts(logger=logger, cache=True, date=curr_date, recent=args.recent)
+        ft_data = build_player_lvl_fts(logger=logger, cache=args.cache, date=curr_date, recent=args.recent)
         player_data = fmt_player_data(ft_data)
     except Exception as e:
         logger.log(f'[ERROR GENERATING PLAYER DATA]: {e}')
