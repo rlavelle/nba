@@ -138,12 +138,13 @@ def build_game_lvl_fts(logger: Logger = None, cache: bool = False, date: int = N
         end = time.time()
         logger.log(f'[FEATURE BUILDING COMPLETE]: {round((end - start), 2) / 60}m')
 
-    try:
-        with open(gen_cache_file('game_fts', date), "wb") as f:
-            pickle.dump(games, f)
-    except Exception as e:
-        if logger:
-            logger.log(f'[ERROR ON SAVING CACHE]: {e}')
+    if cache:
+        try:
+            with open(gen_cache_file('game_fts', date), "wb") as f:
+                pickle.dump(games, f)
+        except Exception as e:
+            if logger:
+                logger.log(f'[ERROR ON SAVING CACHE]: {e}')
 
     return games
 
@@ -202,11 +203,12 @@ def build_player_lvl_fts(logger: Logger = None, cache: bool = False, date: int =
         end = time.time()
         logger.log(f'[FEATURE BUILDING COMPLETE]: {round((end - start) / 60, 2)}m')
 
-    try:
-        with open(gen_cache_file('player_fts', date), "wb") as f:
-            pickle.dump(player_data, f)
-    except Exception as e:
-        if logger:
-            logger.log(f'[ERROR ON SAVING CACHE]: {e}')
+    if cache:
+        try:
+            with open(gen_cache_file('player_fts', date), "wb") as f:
+                pickle.dump(player_data, f)
+        except Exception as e:
+            if logger:
+                logger.log(f'[ERROR ON SAVING CACHE]: {e}')
 
     return player_data
