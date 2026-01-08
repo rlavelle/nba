@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 import argparse
-from datetime import datetime
 import subprocess
+from datetime import datetime
 
 from src.utils.date import generate_dates
 

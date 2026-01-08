@@ -1,8 +1,8 @@
-import smtplib
-from email.mime.text import MIMEText
-from email.mime.multipart import MIMEMultipart
-from email.mime.application import MIMEApplication
 import configparser
+import smtplib
+from email.mime.application import MIMEApplication
+from email.mime.multipart import MIMEMultipart
+from email.mime.text import MIMEText
 
 import markdown
 
@@ -54,7 +54,7 @@ class EmailSender:
             server.starttls()
             server.login(self.sender_email, self.sender_password)
 
-            for recipient,user_type in self.recipients:
+            for recipient, user_type in self.recipients:
                 if admin and user_type != 'admin':
                     continue
 
@@ -72,6 +72,7 @@ class EmailSender:
                         msg.attach(part)
 
                 server.sendmail(self.sender_email, recipient, msg.as_string())
+
 
 if __name__ == "__main__":
     email_sender = EmailSender()

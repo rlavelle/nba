@@ -1,5 +1,5 @@
 from abc import ABC, abstractmethod
-from typing import List, Any, Tuple, Callable
+from typing import List, Tuple, Callable
 
 import numpy as np
 import pandas as pd
@@ -33,7 +33,7 @@ class Trainer(ABC):
         assert len(set(features) - set(df.columns)) == 0, \
             f"not all features contained in data: {set(features) - set(df.columns)}"
 
-        dff = df.dropna(subset=features+[target])
+        dff = df.dropna(subset=features + [target])
         return self._train_and_evaluate_impl(dff, features, target, **kwargs)
 
     @abstractmethod

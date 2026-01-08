@@ -1,6 +1,7 @@
 from abc import ABC, abstractmethod
-import pandas as pd
 from typing import List
+
+import pandas as pd
 
 
 class BaseFeature(ABC):

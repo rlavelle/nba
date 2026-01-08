@@ -12,7 +12,7 @@ from src.modeling_framework.models.xgb_model import XGBModel
 target = 'home_win'
 
 
-def insert_ml_results(ml_results:pd.DataFrame):
+def insert_ml_results(ml_results: pd.DataFrame):
     cols = [
         'team_id', 'dint', 'bookmaker', 'price', 'preds'
     ]
@@ -20,7 +20,7 @@ def insert_ml_results(ml_results:pd.DataFrame):
     insert_table(ml_results[cols], GAME_ODDS_ML_RESULTS_SCHEMA, 'game_ml_results')
 
 
-def build_money_line_model(train_data:pd.DataFrame) -> Model:
+def build_money_line_model(train_data: pd.DataFrame) -> Model:
     train_data[target] = (train_data.points > 0).astype(int)
 
     params = {
@@ -41,9 +41,9 @@ def build_money_line_model(train_data:pd.DataFrame) -> Model:
     xgb.train(X_train, y_train)
     return xgb
 
-def predict_money_line_model(model:Model,
-                             test_data:pd.DataFrame) -> np.array:
 
+def predict_money_line_model(model: Model,
+                             test_data: pd.DataFrame) -> np.array:
     features = get_ft_cols(test_data)
     X_test = test_data[features]
 

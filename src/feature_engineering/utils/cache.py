@@ -9,7 +9,7 @@ from src.logging.logger import Logger
 from src.utils.date import date_to_dint
 
 
-def get_recent_cache_date(logger:Logger=None):
+def get_recent_cache_date(logger: Logger = None):
     try:
         dir = get_cache_dir()
         files = os.listdir(dir)
@@ -28,12 +28,12 @@ def get_cache_dir():
     return config.get('DATA_PATH', 'cache_folder')
 
 
-def gen_cache_file(f, date:int=None):
+def gen_cache_file(f, date: int = None):
     curr_date = date if date else date_to_dint(datetime.date.today())
     return os.path.join(get_cache_dir(), f'{curr_date}_{f}.pkl')
 
 
-def check_cache(f:str, logger:Logger=None, date:int=None, recent:bool=False):
+def check_cache(f: str, logger: Logger = None, date: int = None, recent: bool = False):
     if recent:
         date = get_recent_cache_date(logger=logger)
 

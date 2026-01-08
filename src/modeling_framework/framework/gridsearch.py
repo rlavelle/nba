@@ -1,5 +1,5 @@
-from itertools import product
 import pickle
+from itertools import product
 from typing import Dict, Any, Tuple, List, Callable
 
 import numpy as np
@@ -80,7 +80,6 @@ class GridSearch:
                 best_score = score
                 best_params = params
                 best_model = self._deepcopy_model()
-
 
         msg = f"[BEST] Params: {best_params} => Score: {best_score:.4f}"
         if self.logger:

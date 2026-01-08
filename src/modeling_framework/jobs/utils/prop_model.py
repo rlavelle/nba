@@ -21,7 +21,7 @@ def insert_prop_results(prop_results):
     insert_table(prop_results[cols], PLAYER_PROP_RESULTS_SCHEMA, 'player_prop_results')
 
 
-def build_player_prop_model(train_data:pd.DataFrame) -> Model:
+def build_player_prop_model(train_data: pd.DataFrame) -> Model:
     X_train, y_train = train_data[FS_POINTS], train_data[target]
 
     params = {'alpha': 5}
@@ -31,10 +31,10 @@ def build_player_prop_model(train_data:pd.DataFrame) -> Model:
 
     return lm
 
-def predict_player_prop_model(model:Model,
-                              train_data:pd.DataFrame,
-                              test_data:pd.DataFrame) -> np.array:
 
+def predict_player_prop_model(model: Model,
+                              train_data: pd.DataFrame,
+                              test_data: pd.DataFrame) -> np.array:
     test_data = test_data.copy()
     minute_model = LinearModel(name='lm_minutes')
     minute_model.build_model()

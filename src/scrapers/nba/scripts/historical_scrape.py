@@ -6,18 +6,18 @@ import os
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from datetime import datetime
 
-from src.scrapers.nba.nba_stats_api import NBAStatsApi
 from src.config import CONFIG_PATH
 from src.logging.logger import Logger
+from src.scrapers.nba.nba_stats_api import NBAStatsApi
 from src.scrapers.nba.utils.api_utils import fetch_and_save_boxscore
+from src.scrapers.nba.utils.parsing import parse_games
 from src.scrapers.nba.utils.validation import is_date_data_complete, is_game_data_complete
 from src.utils.date import generate_dates, date_to_dint, date_to_lookup
-from src.scrapers.nba.utils.parsing import parse_games
 
 if __name__ == "__main__":
     logger = Logger()
     api = NBAStatsApi()
-    dates = generate_dates(datetime(2019,7,1))
+    dates = generate_dates(datetime(2019, 7, 1))
 
     config = configparser.ConfigParser()
     config.read(CONFIG_PATH)
@@ -71,7 +71,7 @@ if __name__ == "__main__":
 
                 for boxscore in boxscores:
                     err = False
-                    for a,b in errors:
+                    for a, b in errors:
                         if a == game_id and b == boxscore:
                             print('SKIPPING ERROR FILE')
                             err = True

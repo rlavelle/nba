@@ -7,11 +7,11 @@ from src.scrapers.nba.utils.parsing import parse_boxscore
 from src.scrapers.nba.utils.validation import stat_type_exists, is_bad_stat
 
 
-def fetch_and_save_boxscore(game_id:str,
-                            boxscore:str,
-                            api:NBAStatsApi,
-                            data_path:str,
-                            logger:Logger):
+def fetch_and_save_boxscore(game_id: str,
+                            boxscore: str,
+                            api: NBAStatsApi,
+                            data_path: str,
+                            logger: Logger):
     stat_type_fpath = os.path.join(data_path, f'{game_id}_{boxscore}_stats.json')
     if stat_type_exists(stat_type_fpath):
         return

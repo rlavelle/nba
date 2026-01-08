@@ -1,10 +1,10 @@
 import configparser
+import datetime
 import hashlib
 import json
 import os
 import random
 import time
-import datetime
 from typing import Any, Union
 
 import requests
@@ -41,8 +41,8 @@ class API:
 
     def _get_retry(self,
                    url: str,
-                   params: dict[str,str],
-                   headers: Union[dict[str],None],
+                   params: dict[str, str],
+                   headers: Union[dict[str], None],
                    max_retries=10,
                    retry_interval=10,
                    timeout=10) -> dict[str]:
@@ -87,7 +87,8 @@ class API:
         self.logger.log(msg)
         return {'error': f"Failed after {max_retries} attempts"}
 
-    def _get(self, url: str, params: dict[str,str], headers: Union[dict[str],None], cache:bool=False) -> Union[dict[str],Any]:
+    def _get(self, url: str, params: dict[str, str], headers: Union[dict[str], None], cache: bool = False) -> Union[
+        dict[str], Any]:
         if not cache:
             return self._get_retry(url=url, params=params, headers=headers)
 

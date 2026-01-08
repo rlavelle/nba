@@ -28,4 +28,3 @@ class PlayerHotStreakFeature(BaseFeature):
         df0['hot'] = df0.hot.fillna(1)
 
         return df0.hot.reset_index(level=0, drop=True)
-

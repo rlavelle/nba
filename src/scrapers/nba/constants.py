@@ -1,6 +1,6 @@
 from src.types.game_types import SeasonType
 
-N_STAT_TYPES = 7 # number of types of stats pulled per game
+N_STAT_TYPES = 7  # number of types of stats pulled per game
 SEASON_TYPE_MAP = {
     'Regular Season': SeasonType.REGULAR,
     'Playoffs': SeasonType.PLAYOFFS,

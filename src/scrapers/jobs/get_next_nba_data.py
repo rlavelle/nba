@@ -13,16 +13,18 @@ from src.db.constants import ODDS_SCHEMAS
 from src.db.db_manager import DBManager
 from src.db.utils import insert_error, insert_table
 from src.logging.logger import Logger
-from src.utils.date import date_to_dint, fmt_iso_dint
 from src.scrapers.odds.odds_api import OddsApi
+from src.utils.date import date_to_dint, fmt_iso_dint
+
 
 # TODO: validate that this works with 100% success rate
 #       it should based on the way that team naming conventions work
-def J(a:str,b:str):
+def J(a: str, b: str):
     A = set(a.lower().split(' '))
     B = set(b.lower().split(' '))
 
     return len(A.intersection(B)) / len(A.union(B))
+
 
 def get_upcoming_games(logger: Logger):
     api = OddsApi(logger=logger)
@@ -54,7 +56,7 @@ def get_upcoming_games(logger: Logger):
             )
 
             # TODO: 15015 is the fucking sydney kings... not the SAC kings.... ffs
-            db_id = int(teams.loc[idx,'team_id'])
+            db_id = int(teams.loc[idx, 'team_id'])
 
             # TODO: the truncation in fmt_iso_dint from GMT is messing up predictions
             #       half the games are on d1 and the other on d2 depending on start time
@@ -69,14 +71,14 @@ def get_upcoming_games(logger: Logger):
             #       this wont be gauranteed not to duplicate however if all odds dont update in the same
             #       GMT day window when the scrape occurs at 6am EST
             tmp = {
-               'id': game['id'],
-               'dint': fmt_iso_dint(game['commence_time']),
-               'oods_name': team_name,
-               'db_name': match,
-               'db_slug': teams.loc[idx,'team_slug'],
-               'db_id': db_id,
-               'is_home': side == 'home_team'
-           }
+                'id': game['id'],
+                'dint': fmt_iso_dint(game['commence_time']),
+                'oods_name': team_name,
+                'db_name': match,
+                'db_slug': teams.loc[idx, 'team_slug'],
+                'db_id': db_id,
+                'is_home': side == 'home_team'
+            }
 
             team_mapping[game[side]] = db_id
             res.append(tmp)
@@ -84,7 +86,7 @@ def get_upcoming_games(logger: Logger):
     return res, team_mapping
 
 
-def get_spread_ml(logger: Logger, team_mapping: dict[str,str]):
+def get_spread_ml(logger: Logger, team_mapping: dict[str, str]):
     api = OddsApi(logger=logger)
 
     try:
@@ -135,6 +137,7 @@ def _match_player(player_name, players_df):
     player_id = int(players_df.loc[idx, 'player_id'])
     return player_id
 
+
 def parse_props(logger, id):
     api = OddsApi(logger=logger)
     dbm = DBManager(logger=logger)
@@ -155,7 +158,7 @@ def parse_props(logger, id):
 
     res = []
     for bookmaker in props['bookmakers']:
-        market = bookmaker['markets'][0] # we only request 1 market
+        market = bookmaker['markets'][0]  # we only request 1 market
         for outcome in market['outcomes']:
             # why is JR smith here... 2747...
             tmp = {
@@ -203,6 +206,7 @@ def dump_raw_odds(date_path, upcoming_games, res_spreads, res_ml, res_props):
             break
         i += 1
 
+
 def insert_odds_tables(args, res_props, res_spreads, res_ml):
     if args.skip_insert:
         logger.log(f'[SKIP INSERT] Skipping insert for {dint}')
@@ -247,7 +251,7 @@ if __name__ == "__main__":
 
         dump_raw_odds(date_path, upcoming_games, res_spreads, res_ml, res_props)
 
-        logger.log(f'[SUCCESS ODDS PULL]: {len(upcoming_games)//2} games collected')
+        logger.log(f'[SUCCESS ODDS PULL]: {len(upcoming_games) // 2} games collected')
 
         insert_odds_tables(args, res_props, res_spreads, res_ml)
 

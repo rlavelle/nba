@@ -58,7 +58,7 @@ def hit_by_delta(wins):
     for threshold in range(0, max_floor + 1):
         subset = wins[wins.delta > threshold].copy()
         subset2 = wins[(wins.delta >= threshold) & (wins.delta < threshold + 1)]
-        group_name = f"delta > {threshold} | bucket = [{threshold}, {threshold+1})"
+        group_name = f"delta > {threshold} | bucket = [{threshold}, {threshold + 1})"
 
         mean_bet = subset.bet.mean()
         mean_bet2 = subset2.bet.mean()
@@ -73,6 +73,7 @@ def hit_by_delta(wins):
         })
 
     return pd.DataFrame(results)
+
 
 def get_pct_results(win1, win2):
     vegas_ml_res = win1.win_vegas.mean()

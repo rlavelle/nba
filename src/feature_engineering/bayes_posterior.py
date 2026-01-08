@@ -76,13 +76,13 @@ class BayesPosteriorFeature(BaseFeature):
                        )
 
         return ((
-                    (
-                        df0.n.shift(1) * df0[self.ybar_col] / df0[f'{self.source_col}_s2bar'] +
-                        df0[f'{self.source_col}_mu0'] / df0[f'{self.source_col}_tau20']
-                    ) /
-                    (
-                        df0.n.shift(1) / df0[f'{self.source_col}_s2bar'] + 1 / df0[f'{self.source_col}_tau20']
-                    )
+                        (
+                                df0.n.shift(1) * df0[self.ybar_col] / df0[f'{self.source_col}_s2bar'] +
+                                df0[f'{self.source_col}_mu0'] / df0[f'{self.source_col}_tau20']
+                        ) /
+                        (
+                                df0.n.shift(1) / df0[f'{self.source_col}_s2bar'] + 1 / df0[f'{self.source_col}_tau20']
+                        )
                 )
                 .fillna(df0[f'{self.source_col}_mu0'])
                 .reset_index(level=0, drop=True))

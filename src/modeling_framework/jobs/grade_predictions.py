@@ -7,7 +7,7 @@ from src.db.utils import insert_error
 from src.logging.logger import Logger
 from src.modeling_framework.framework.dataloader import NBADataLoader
 from src.modeling_framework.jobs.utils.formatting import pretty_print_grading, send_results
-from src.modeling_framework.jobs.utils.grading import format_player_data, format_game_data, hit_by_delta
+from src.modeling_framework.jobs.utils.grading import format_player_data, format_game_data
 from src.types.player_types import PlayerType
 from src.utils.date import date_to_dint
 
@@ -84,9 +84,3 @@ if __name__ == "__main__":
 
     if not args.offline:
         logger.email_log()
-
-
-
-
-
-

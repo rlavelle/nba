@@ -1,4 +1,5 @@
 from xgboost import XGBRegressor
+
 from src.modeling_framework.framework.model import Model
 
 

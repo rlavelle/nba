@@ -2,16 +2,16 @@ import json
 import os
 
 from src.scrapers.nba.constants import N_STAT_TYPES
-from src.utils.file_io import get_dirs, get_files
 from src.types.game_types import StatType
 from src.types.nba_types import RawGameMeta, RawGameStats
+from src.utils.file_io import get_dirs, get_files
 
 
-def is_date_data_complete(dir:str, dint:int) -> bool:
+def is_date_data_complete(dir: str, dint: int) -> bool:
     if not os.path.isdir(dir):
         return False
 
-    game_file = os.path.join(dir,f'{dint}_games.json')
+    game_file = os.path.join(dir, f'{dint}_games.json')
     if not os.path.isfile(game_file):
         return False
 
@@ -30,7 +30,7 @@ def is_date_data_complete(dir:str, dint:int) -> bool:
     return True
 
 
-def is_game_data_complete(dir:str) -> bool:
+def is_game_data_complete(dir: str) -> bool:
     if not os.path.exists(dir):
         return False
 
@@ -38,7 +38,7 @@ def is_game_data_complete(dir:str) -> bool:
     return len(files) == N_STAT_TYPES
 
 
-def stat_type_exists(fpath:str) -> bool:
+def stat_type_exists(fpath: str) -> bool:
     return os.path.isfile(fpath)
 
 

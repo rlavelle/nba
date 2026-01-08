@@ -7,7 +7,7 @@ class NBAStatsApi(API):
     def __init__(self, logger=None):
         super().__init__(logger)
 
-    def get_boxscore(self, game_id:str, endpoint:str, period:str) -> dict[str]:
+    def get_boxscore(self, game_id: str, endpoint: str, period: str) -> dict[str]:
         assert endpoint in self.config.options('NBA_STATS_ENDPOINTS'), f'{endpoint} not in valid endpoints'
         assert period in self.config.options('TIME_PERIODS'), f'{period} not in valid time periods'
 
@@ -19,7 +19,7 @@ class NBAStatsApi(API):
         response = self._get(url=url, params=params, headers=headers)
         return response
 
-    def get_games(self, date:str) -> dict[str]:
+    def get_games(self, date: str) -> dict[str]:
         url = self.config.get('NBA_GAMES_ENDPOINTS', 'nba_games')
         headers = json.loads(self.config.get('NBA_GAMES_HEADERS', 'headers'))
         params = {

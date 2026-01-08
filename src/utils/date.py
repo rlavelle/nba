@@ -1,7 +1,7 @@
 from datetime import datetime, timedelta
 
 
-def fmt_iso_dint(date:str):
+def fmt_iso_dint(date: str):
     return int(date[:10].replace('-', ''))
 
 
@@ -19,7 +19,7 @@ def generate_dates(start: datetime.date, end: datetime.date = None) -> list[date
     return dates
 
 
-def date_to_dint(date:datetime.date) -> int:
+def date_to_dint(date: datetime.date) -> int:
     return int(date.strftime('%Y%m%d'))
 
 
@@ -27,11 +27,11 @@ def dint_to_date(dint: int) -> datetime.date:
     return datetime.strptime(str(dint), "%Y%m%d")
 
 
-def date_to_lookup(date:datetime.date, date_format="%m/%d/%Y") -> str:
+def date_to_lookup(date: datetime.date, date_format="%m/%d/%Y") -> str:
     return date.strftime(date_format)
 
 
-def time_to_minutes(time_string:str) -> float:
+def time_to_minutes(time_string: str) -> float:
     if '-' in time_string:
         return 0
 

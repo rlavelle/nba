@@ -21,7 +21,4 @@ if __name__ == "__main__":
         path = os.path.join(data_path, folder)
         c += int(is_date_data_complete(path, int(folder)))
 
-    print(c/n)
-
-
-
+    print(c / n)

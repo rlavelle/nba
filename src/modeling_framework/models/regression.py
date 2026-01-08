@@ -1,4 +1,5 @@
 from sklearn.linear_model import LinearRegression, Ridge, Lasso, LogisticRegression
+
 from src.modeling_framework.framework.model import Model
 
 

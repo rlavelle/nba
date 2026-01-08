@@ -15,7 +15,7 @@ class DBManager:
         else:
             self.logger = Logger()
 
-    def execute_query(self, query:str) -> pd.DataFrame:
+    def execute_query(self, query: str) -> pd.DataFrame:
         try:
             ret = pd.read_sql_query(query, self.engine)
             if 'date' in ret.columns:
@@ -74,11 +74,11 @@ class DBManager:
         query = 'SELECT * FROM game_stats;'
         return self.execute_query(query)
 
-    def get_game_stats_by_type(self, stat_type:StatType) -> pd.DataFrame:
+    def get_game_stats_by_type(self, stat_type: StatType) -> pd.DataFrame:
         query = f"SELECT * FROM game_stats WHERE stat_type = '{stat_type.value}';"
         return self.execute_query(query)
 
-    def get_player_id(self, player_slug:str) -> int:
+    def get_player_id(self, player_slug: str) -> int:
         query = f"SELECT * FROM players WHERE player_slug = '{player_slug}';"
         player = self.execute_query(query)
 
@@ -87,7 +87,7 @@ class DBManager:
 
         return player['player_id'].values[0]
 
-    def get_team_id(self, team_name:str) -> int:
+    def get_team_id(self, team_name: str) -> int:
         query = f"SELECT * FROM teams WHERE team_name = '{team_name}';"
         team = self.execute_query(query)
 
@@ -96,11 +96,11 @@ class DBManager:
 
         return team['team_id'].values[0]
 
-    def get_player_stats_by_slug(self, player_slug:str) -> pd.DataFrame:
+    def get_player_stats_by_slug(self, player_slug: str) -> pd.DataFrame:
         query = f"SELECT * FROM player_stats WHERE player_id = '{self.get_player_id(player_slug)}';"
         return self.execute_query(query)
 
-    def get_player_stats_team(self, player_slug:str, team_name:str) -> pd.DataFrame:
+    def get_player_stats_team(self, player_slug: str, team_name: str) -> pd.DataFrame:
         query = f"""
             SELECT DISTINCT player_stats.*, teams.team_name, players.player_slug
             FROM player_stats
@@ -111,7 +111,8 @@ class DBManager:
         """
         return self.execute_query(query).sort_values(by='date')
 
-    def get_player_stats_season_type(self, player_slug:str, season_type_code:SeasonType, season:str=None) -> pd.DataFrame:
+    def get_player_stats_season_type(self, player_slug: str, season_type_code: SeasonType,
+                                     season: str = None) -> pd.DataFrame:
         query = """
             SELECT DISTINCT s.*, 
                             g.season, g.season_type, g.season_type_code, 
@@ -133,7 +134,8 @@ class DBManager:
 
         return ret.loc[:, ret.columns[~ret.columns.duplicated()]]
 
-    def get_team_games_season_type(self, team_name:str, season_type_code:SeasonType, season:str=None) -> pd.DataFrame:
+    def get_team_games_season_type(self, team_name: str, season_type_code: SeasonType,
+                                   season: str = None) -> pd.DataFrame:
         query = """
             SELECT DISTINCT g.*
             FROM games g
@@ -155,7 +157,7 @@ class DBManager:
 
         return ret.drop(['team_id_home', 'team_id_away'], axis=1).sort_values(by='date')
 
-    def get_stats_season_type(self, season_type_code:SeasonType, season:str=None) -> pd.DataFrame:
+    def get_stats_season_type(self, season_type_code: SeasonType, season: str = None) -> pd.DataFrame:
         query = f"""
             SELECT s.*, g.season, g.season_type, g.season_type_code, g.dint, g.date
             FROM player_stats s
@@ -167,7 +169,7 @@ class DBManager:
 
         return self.execute_query(query)
 
-    def get_games_with_teams(self, dint:int) -> pd.DataFrame:
+    def get_games_with_teams(self, dint: int) -> pd.DataFrame:
         query = f"""
             SELECT
                 g.game_id,

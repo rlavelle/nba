@@ -6,32 +6,31 @@ import pandas as pd
 
 from src.db.db_manager import DBManager
 from src.logging.logger import Logger
-
 from src.scrapers.nba.utils.formatting import fmt_player_data, fmt_stats_data, fmt_game_data, fmt_team_data, \
     clean_tables
 from src.scrapers.nba.utils.validation import is_bad_game, is_bad_stat
-from src.utils.file_io import get_dirs
 from src.types.game_types import StatType
 from src.types.nba_types import RawGameStats, GameMeta, GameStats, PlayerMeta, PlayerStats, TeamMeta, RawGameMeta, \
     RawTeamData, RawPlayerData
+from src.utils.file_io import get_dirs
 
 
-def parse_boxscore(score:dict[str]) -> RawGameStats:
+def parse_boxscore(score: dict[str]) -> RawGameStats:
     metric = list(score.keys())[1]
     return score[metric]
 
 
-def parse_games(games:dict[str]) -> dict[str]:
+def parse_games(games: dict[str]) -> dict[str]:
     fmt_games = {}
     for card in games['modules'][0]['cards']:
         data = card['cardData']
         game_id = data['gameId']
 
         fmt_games[game_id] = {
-            'meta':{
-                'season_yr':data['seasonYear'],
-                'season_type':data['seasonType'],
-                'game_time':data['gameTimeEastern']
+            'meta': {
+                'season_yr': data['seasonYear'],
+                'season_type': data['seasonType'],
+                'game_time': data['gameTimeEastern']
             },
             'home': data['homeTeam'],
             'away': data['awayTeam']
@@ -40,21 +39,20 @@ def parse_games(games:dict[str]) -> dict[str]:
     return fmt_games
 
 
-def parse_dumped_game_data(game_dir:str, dint:int, game_id:str)\
+def parse_dumped_game_data(game_dir: str, dint: int, game_id: str) \
         -> Tuple[GameMeta, list[GameStats], list[PlayerMeta], list[PlayerStats], list[TeamMeta]]:
-
     stat_files = os.listdir(game_dir)
 
-    game_meta:GameMeta = None
+    game_meta: GameMeta = None
     seen_players = set()
     player_stats_dict = {}
     game_stats_dict = {}
-    player_data:list[PlayerMeta] = []
-    team_data:list[TeamMeta] = []
+    player_data: list[PlayerMeta] = []
+    team_data: list[TeamMeta] = []
 
     for stat_file in stat_files:
         fpath = os.path.join(game_dir, stat_file)
-        j:RawGameMeta|RawGameStats = json.load(open(fpath))
+        j: RawGameMeta | RawGameStats = json.load(open(fpath))
 
         if 'meta' in stat_file:
             if is_bad_game(j):
@@ -71,8 +69,8 @@ def parse_dumped_game_data(game_dir:str, dint:int, game_id:str)\
                 continue
 
             for side in ['homeTeam', 'awayTeam']:
-                team:RawTeamData = j[side]
-                players:list[RawPlayerData] = team['players']
+                team: RawTeamData = j[side]
+                players: list[RawPlayerData] = team['players']
                 team_id = team['teamId']
                 is_home = side == 'homeTeam'
 
@@ -121,7 +119,7 @@ def parse_dumped_game_data(game_dir:str, dint:int, game_id:str)\
     return game_meta, game_stats, player_data, player_stats, team_data
 
 
-def parse_dumped_data_by_day(games_folder:str, date:str, logger: Logger) -> Tuple[pd.DataFrame]:
+def parse_dumped_data_by_day(games_folder: str, date: str, logger: Logger) -> Tuple[pd.DataFrame]:
     dbm = DBManager(logger=logger)
 
     seen_players = set(dbm.get_all_player_ids().tolist())

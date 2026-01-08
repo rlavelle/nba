@@ -1,4 +1,3 @@
-from typing import List
 import pandas as pd
 
 from src.modeling_framework.framework.standardizer import Standardizer
@@ -106,13 +105,13 @@ class ZScoreStandardizer(Standardizer):
                 mu_filled = mu_filled.reindex(dff.index)
                 std_filled = std_filled.reindex(dff.index)
 
-                standardized = dff[self.features]*std_filled + mu_filled
+                standardized = dff[self.features] * std_filled + mu_filled
 
             elif handle_unseen == 'nan':
-                standardized = dff[self.features]*self.std + self.mu
+                standardized = dff[self.features] * self.std + self.mu
             else:
                 raise ValueError(f"Invalid handle_unseen: {handle_unseen}")
         else:
-            standardized = dff[self.features]*self.std + self.mu
+            standardized = dff[self.features] * self.std + self.mu
 
         return standardized.reset_index(drop=True)

@@ -43,7 +43,7 @@ if __name__ == "__main__":
 
     date = datetime.datetime.strptime(args.date, '%Y-%m-%d') if args.date else datetime.date.today()
     curr_date = date_to_dint(date)
-    nxt_date = curr_date #date_to_dint(date + datetime.timedelta(days=1))
+    nxt_date = curr_date  # date_to_dint(date + datetime.timedelta(days=1))
     prv_date = date_to_dint(date - datetime.timedelta(days=1))
 
     try:
@@ -143,7 +143,7 @@ if __name__ == "__main__":
     )
 
     # TODO: rebuild spread model
-    #spread_results = build_spread_results(...)
+    # spread_results = build_spread_results(...)
 
     # TODO: patched the patched
     ml_results = build_money_line_results(

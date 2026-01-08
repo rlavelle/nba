@@ -60,10 +60,10 @@ def format_testing_data(odds, test_data):
     odds['team_id'] = odds.team_id.astype(int)
     tmp['team_id'] = tmp.team_id.astype(int)
 
-    tmp_home = pd.merge(odds[['is_home', 'game_id', 'team_id']], tmp,  on=['team_id'],  how='left')
+    tmp_home = pd.merge(odds[['is_home', 'game_id', 'team_id']], tmp, on=['team_id'], how='left')
 
-    odds['is_home'] = np.where(odds.is_home==1, 0, 1)
-    tmp_away = pd.merge(odds[['is_home', 'game_id', 'team_id']], tmp,  on=['team_id'],  how='left')
+    odds['is_home'] = np.where(odds.is_home == 1, 0, 1)
+    tmp_away = pd.merge(odds[['is_home', 'game_id', 'team_id']], tmp, on=['team_id'], how='left')
 
     return fmt_diff_data(tmp_home), fmt_diff_data(tmp_away)
 
@@ -89,8 +89,6 @@ def pretty_print_results(prop_r, ml_r):
                          'description', 'price', 'point', 'preds', 'delta']].copy()
         prop_r = pd.merge(prop_r, players, on='player_id', how='left')
         prop_r = prop_r.drop(columns=['player_slug'])
-
-
 
     # if spread_r is not None:
     #     spread_r = spread_r[['team_id', 'bookmaker', 'price', 'point', 'preds']].copy()
@@ -158,29 +156,30 @@ def pretty_print_grading(game_wins, player_wins, game_wins_prev, player_wins_pre
     rprev = hit_by_delta(player_wins_prev)
 
     vegas_ml_res, model_ml_res, diff, ngames, model_prop_res, nplayers = get_pct_results(game_wins, player_wins)
-    vegas_ml_res1, model_ml_res1, diff1, ngames1, model_prop_res1, nplayers1 = get_pct_results(game_wins_prev, player_wins_prev)
+    vegas_ml_res1, model_ml_res1, diff1, ngames1, model_prop_res1, nplayers1 = get_pct_results(game_wins_prev,
+                                                                                               player_wins_prev)
 
     md = f"""
     # NBA Bet Grading {datetime.date.today() + datetime.timedelta(days=-1)}
        
     ### Yesterdays Results
-    Vegas favorites: {round(vegas_ml_res1, 2)*100}%
-    Model favorites: {round(model_ml_res1, 2)*100}%
-    Vegas fade Model favorite: {round(diff1, 2)*100}%
+    Vegas favorites: {round(vegas_ml_res1, 2) * 100}%
+    Model favorites: {round(model_ml_res1, 2) * 100}%
+    Vegas fade Model favorite: {round(diff1, 2) * 100}%
     N Moneyline bets: {ngames1}
    
-    Model Prop O/U: {round(model_prop_res1, 2)*100}%
+    Model Prop O/U: {round(model_prop_res1, 2) * 100}%
     N Prop bets: {nplayers1}
    
     {rprev.to_markdown(index=False)}
    
     ### Total Season Results
-    Vegas favorites: {round(vegas_ml_res, 2)*100}%
-    Model favorites: {round(model_ml_res, 2)*100}%
-    Vegas fade Model favorite: {round(diff, 2)*100}%
+    Vegas favorites: {round(vegas_ml_res, 2) * 100}%
+    Model favorites: {round(model_ml_res, 2) * 100}%
+    Vegas fade Model favorite: {round(diff, 2) * 100}%
     N Moneyline bets: {ngames}
    
-    Model Prop O/U: {round(model_prop_res, 2)*100}%
+    Model Prop O/U: {round(model_prop_res, 2) * 100}%
     N Prop bets: {nplayers}
    
     {rtotal.to_markdown(index=False)}
@@ -194,23 +193,23 @@ def pretty_print_grading(game_wins, player_wins, game_wins_prev, player_wins_pre
     # NBA Bet Grading {datetime.date.today() + datetime.timedelta(days=-1)}
        
     ### Yesterdays Results
-    Vegas favorites: {round(vegas_ml_res1, 2)*100}%
-    Model favorites: {round(model_ml_res1, 2)*100}%
-    Vegas fade Model favorite: {round(diff1, 2)*100}%
+    Vegas favorites: {round(vegas_ml_res1, 2) * 100}%
+    Model favorites: {round(model_ml_res1, 2) * 100}%
+    Vegas fade Model favorite: {round(diff1, 2) * 100}%
     N Moneyline bets: {ngames1}
    
-    Model Prop O/U: {round(model_prop_res1, 2)*100}%
+    Model Prop O/U: {round(model_prop_res1, 2) * 100}%
     N Prop bets: {nplayers1}
    
     {rprev.to_html(index=False)}
    
     ### Total Season Results
-    Vegas favorites: {round(vegas_ml_res, 2)*100}%
-    Model favorites: {round(model_ml_res, 2)*100}%
-    Vegas fade Model favorite: {round(diff, 2)*100}%
+    Vegas favorites: {round(vegas_ml_res, 2) * 100}%
+    Model favorites: {round(model_ml_res, 2) * 100}%
+    Vegas fade Model favorite: {round(diff, 2) * 100}%
     N Moneyline bets: {ngames}
    
-    Model Prop O/U: {round(model_prop_res, 2)*100}%
+    Model Prop O/U: {round(model_prop_res, 2) * 100}%
     N Prop bets: {nplayers}
    
     {rtotal.to_html(index=False)}
@@ -226,7 +225,7 @@ def pretty_print_grading(game_wins, player_wins, game_wins_prev, player_wins_pre
     return md, html
 
 
-def prep_odds(odds: pd.DataFrame, bookmakers: list[str], curr_date:int):
+def prep_odds(odds: pd.DataFrame, bookmakers: list[str], curr_date: int):
     odds = odds.copy()
 
     # TODO: patch for now... needs a cleaner solution based on commence_time and better

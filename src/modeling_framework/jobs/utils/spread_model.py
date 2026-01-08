@@ -12,7 +12,7 @@ from src.modeling_framework.standardizers.zscore import ZScoreStandardizer
 target = 'spread'
 
 
-def build_spread_model(train_data:pd.DataFrame) -> Tuple[Model, Standardizer]:
+def build_spread_model(train_data: pd.DataFrame) -> Tuple[Model, Standardizer]:
     train_data[target] = train_data.points.abs()
 
     params = {
@@ -40,11 +40,10 @@ def build_spread_model(train_data:pd.DataFrame) -> Tuple[Model, Standardizer]:
     return xgb, s
 
 
-def predict_spread_model(model:Model,
-                         s:ZScoreStandardizer,
-                         train_data:pd.DataFrame,
-                         test_data:pd.DataFrame) -> np.array:
-
+def predict_spread_model(model: Model,
+                         s: ZScoreStandardizer,
+                         train_data: pd.DataFrame,
+                         test_data: pd.DataFrame) -> np.array:
     train_data[target] = train_data.points.abs()
     test_data[target] = test_data.points.abs()
 
@@ -59,8 +58,7 @@ def predict_spread_model(model:Model,
 
     proj_preds = pd.DataFrame(proj_preds, columns=[target])
 
-    return preds #s.inverse_transform(proj_preds, handle_unseen='global')
-
+    return preds  # s.inverse_transform(proj_preds, handle_unseen='global')
 
 # TODO: rebuild spread model
 # def build_spread_results():

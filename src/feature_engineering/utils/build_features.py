@@ -1,8 +1,7 @@
-import datetime
+import pickle
 import pickle
 import time
 
-import numpy as np
 import pandas as pd
 
 from src.feature_engineering.base import FeaturePipeline
@@ -33,6 +32,7 @@ def get_ft_cols(df):
     ]
 
     return cols
+
 
 def build_ft_sets(df, fts, id):
     for f in fts:
@@ -136,7 +136,7 @@ def build_game_lvl_fts(logger: Logger = None, cache: bool = False, date: int = N
 
     if logger:
         end = time.time()
-        logger.log(f'[FEATURE BUILDING COMPLETE]: {round((end - start), 2)/60}m')
+        logger.log(f'[FEATURE BUILDING COMPLETE]: {round((end - start), 2) / 60}m')
 
     try:
         with open(gen_cache_file('game_fts', date), "wb") as f:
@@ -200,7 +200,7 @@ def build_player_lvl_fts(logger: Logger = None, cache: bool = False, date: int =
 
     if logger:
         end = time.time()
-        logger.log(f'[FEATURE BUILDING COMPLETE]: {round((end - start)/60, 2)}m')
+        logger.log(f'[FEATURE BUILDING COMPLETE]: {round((end - start) / 60, 2)}m')
 
     try:
         with open(gen_cache_file('player_fts', date), "wb") as f:

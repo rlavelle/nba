@@ -37,7 +37,7 @@ class OddsApi(API):
 
         return self._get(url=url, params=params, headers=None, cache=True)
 
-    def get_props(self, id:str) -> EventOdds:
+    def get_props(self, id: str) -> EventOdds:
         markets = 'player_points'
         params = dict(
             markets=markets,

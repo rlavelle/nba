@@ -32,7 +32,7 @@ class RollingWindowTrainer(Trainer):
         predictions = []
 
         for i in range(window_size, len(df) - 1):
-            train = df.iloc[i-window_size:i]
+            train = df.iloc[i - window_size:i]
             test = df.iloc[[i]]
 
             X_train = train[features]

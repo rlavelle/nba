@@ -5,11 +5,11 @@ import numpy as np
 import pandas as pd
 
 from src.scrapers.nba.constants import SEASON_TYPE_MAP, GAME_DUPE_COLS, PLAYER_DUPE_COLS
-from src.utils.date import time_to_minutes
 from src.types.nba_types import RawPlayerData, PlayerMeta, PlayerStats, RawGameMeta, GameMeta, RawTeamData, TeamMeta
+from src.utils.date import time_to_minutes
 
 
-def fmt_player_data(player:RawPlayerData) -> PlayerMeta:
+def fmt_player_data(player: RawPlayerData) -> PlayerMeta:
     return {
         'player_id': player['personId'],
         'player_name': player['firstName'] + ' ' + player['familyName'],
@@ -17,11 +17,11 @@ def fmt_player_data(player:RawPlayerData) -> PlayerMeta:
     }
 
 
-def fmt_stats_data(stats:dict[str, Any],
-                   game_id:str,
-                   player_id:int,
-                   team_id:int,
-                   position:str) -> PlayerStats:
+def fmt_stats_data(stats: dict[str, Any],
+                   game_id: str,
+                   player_id: int,
+                   team_id: int,
+                   position: str) -> PlayerStats:
     return {
         'player_id': player_id,
         'team_id': team_id,
@@ -31,7 +31,7 @@ def fmt_stats_data(stats:dict[str, Any],
     }
 
 
-def fmt_game_data(game: RawGameMeta, dint:int, game_id: str) -> GameMeta:
+def fmt_game_data(game: RawGameMeta, dint: int, game_id: str) -> GameMeta:
     return {
         'game_id': game_id,
         'season': game['meta']['season_yr'],

@@ -17,7 +17,6 @@ from src.modeling_framework.jobs.utils.prop_model import build_player_prop_model
 from src.modeling_framework.jobs.utils.spread_model import build_spread_model
 from src.utils.date import date_to_dint
 
-
 if __name__ == "__main__":
     start = time.time()
     logger = Logger(fpath='cron_path', daily_cron=True)

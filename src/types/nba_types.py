@@ -73,5 +73,3 @@ class GameStats(TypedDict, total=False):
     is_home: bool
     stat_type: StatType
     # all auxiliary stats...
-
-

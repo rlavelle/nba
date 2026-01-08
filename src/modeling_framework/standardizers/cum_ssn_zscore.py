@@ -1,4 +1,3 @@
-from typing import List
 import pandas as pd
 
 from src.modeling_framework.framework.standardizer import Standardizer
@@ -73,5 +72,5 @@ class CumSsnZScoreStandardizer(Standardizer):
             .shift(1)
         )
 
-        standardized = df[self.features]*stds + mus
+        standardized = df[self.features] * stds + mus
         return standardized.reset_index()

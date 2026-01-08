@@ -5,24 +5,24 @@ import json
 import os
 import time
 from concurrent.futures import ThreadPoolExecutor, as_completed
+from datetime import datetime
 from typing import Tuple
 
+from src.config import CONFIG_PATH
 from src.db.constants import SCHEMAS
 from src.db.utils import insert_error, insert_table
-from src.scrapers.nba.nba_stats_api import NBAStatsApi
-from src.config import CONFIG_PATH
 from src.logging.logger import Logger
-from datetime import datetime
-
+from src.scrapers.nba.nba_stats_api import NBAStatsApi
 from src.scrapers.nba.utils.api_utils import fetch_and_save_boxscore
+from src.scrapers.nba.utils.parsing import parse_games, parse_dumped_data_by_day
 from src.scrapers.nba.utils.validation import is_date_data_complete, is_game_data_complete, is_empty_game, is_bad_game
 from src.utils.date import date_to_dint, date_to_lookup
-from src.scrapers.nba.utils.parsing import parse_games, parse_dumped_data_by_day
 
 """
 This job is run to scrape games *after* they occur
     - runs in the morning to get results of prev day
 """
+
 
 def get_data_path(config_path: str) -> Tuple[str, list[str]]:
     config = configparser.ConfigParser()
@@ -30,7 +30,8 @@ def get_data_path(config_path: str) -> Tuple[str, list[str]]:
     return config.get('DATA_PATH', 'games_folder'), config.options('NBA_STATS_ENDPOINTS')
 
 
-def scrape_games_for_day(date: datetime, data_path: str, api: NBAStatsApi, logger: Logger, boxscores: list[str]) -> None:
+def scrape_games_for_day(date: datetime, data_path: str, api: NBAStatsApi, logger: Logger,
+                         boxscores: list[str]) -> None:
     lookup = date_to_lookup(date)
     dint = date_to_dint(date)
     logger.log(f'[SCRAPE FOR {date}]')
@@ -146,7 +147,7 @@ def update_nba_data(logger: Logger, args):
         parse_and_insert_if_complete(date, data_path, logger)
 
     end = time.time()
-    logger.log(f'[DONE] Runtime: {round((end - start)/60, 2)} minutes')
+    logger.log(f'[DONE] Runtime: {round((end - start) / 60, 2)} minutes')
 
 
 if __name__ == "__main__":

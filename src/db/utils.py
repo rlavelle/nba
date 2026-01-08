@@ -6,7 +6,7 @@ import pandas as pd
 from sqlalchemy import create_engine, text
 
 from src.config import CONFIG_PATH, LOCAL
-from src.db.constants import SCHEMAS, ODDS_SCHEMAS, ODDS_RESULTS
+from src.db.constants import ODDS_RESULTS
 
 
 def get_engine():
@@ -17,7 +17,7 @@ def get_engine():
     return create_engine(db_url)
 
 
-def insert_table(table: pd.DataFrame, schema:str, name:str, drop=False):
+def insert_table(table: pd.DataFrame, schema: str, name: str, drop=False):
     engine = get_engine()
 
     if drop:
@@ -39,7 +39,7 @@ def insert_error(error: dict[str, Any]):
         if pd.isna(max_task_id):
             max_task_id = 0
 
-        error['task_id'] = max_task_id+1
+        error['task_id'] = max_task_id + 1
         error['time'] = datetime.now()
         pd.DataFrame([error]).to_sql('errors', con=engine, index=False, if_exists='append')
         return True
@@ -67,4 +67,4 @@ def create_empty_tables(schemas):
 
 if __name__ == "__main__":
     create_empty_tables(ODDS_RESULTS)
-    #insert_error({'msg': 'test'})
+    # insert_error({'msg': 'test'})

@@ -15,8 +15,8 @@ class NBADataLoader:
         self.loaded = False
 
     def load_data(self,
-                 stat_type: StatType = StatType.TOTAL,
-                 ssns: Tuple[SeasonType] = (SeasonType.REGULAR,)) -> None:
+                  stat_type: StatType = StatType.TOTAL,
+                  ssns: Tuple[SeasonType] = (SeasonType.REGULAR,)) -> None:
         """
         Load and process NBA game and player data.
 
@@ -40,8 +40,8 @@ class NBADataLoader:
         self.loaded = True
 
     def _load_games(self,
-                   stat_type: StatType,
-                   ssns: Tuple[SeasonType]) -> Tuple[pd.DataFrame, pd.DataFrame, pd.DataFrame]:
+                    stat_type: StatType,
+                    ssns: Tuple[SeasonType]) -> Tuple[pd.DataFrame, pd.DataFrame, pd.DataFrame]:
         """
         Load game statistics and metadata.
 
@@ -78,13 +78,13 @@ class NBADataLoader:
         """
         games = self.data['games']
         x = games[['game_id', 'team_id', 'season', 'season_type', 'season_type_code',
-                  'dint', 'date', 'is_home']]
+                   'dint', 'date', 'is_home']]
 
         players = pd.merge(x, players, on=['game_id', 'team_id'], how='left')
 
         tmp = pd.merge(games[games.is_home == 1][['game_id', 'points']],
-                      games[games.is_home == 0][['game_id', 'points']],
-                      on='game_id', how='left')
+                       games[games.is_home == 0][['game_id', 'points']],
+                       on='game_id', how='left')
         tmp['spread'] = np.abs(tmp.points_x - tmp.points_y)
         players = pd.merge(players, tmp[['game_id', 'spread']], on='game_id', how='left')
 

@@ -1,9 +1,10 @@
 from datetime import datetime
+from typing import Tuple, List
+
+import pandas as pd
 
 from src.modeling_framework.framework.model import Model
 from src.modeling_framework.framework.trainer import Trainer
-import pandas as pd
-from typing import Tuple, List
 
 
 class DateSplitTrainer(Trainer):

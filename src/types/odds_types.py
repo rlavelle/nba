@@ -10,14 +10,17 @@ class UpcomingGameResponse(TypedDict):
     home_team: str
     away_team: str
 
+
 class MoneyLineTeamOdds(TypedDict):
     name: str
     price: float
+
 
 class SpreadTeamOdds(TypedDict):
     name: str
     price: float
     point: float
+
 
 class PropOdds(TypedDict):
     name: str
@@ -25,9 +28,11 @@ class PropOdds(TypedDict):
     price: float
     point: float
 
+
 class MarketOdds(TypedDict):
     key: str  # h2h, spread, etc.
-    outcomes: list[Union[MoneyLineTeamOdds,SpreadTeamOdds]]
+    outcomes: list[Union[MoneyLineTeamOdds, SpreadTeamOdds]]
+
 
 class BookmakerOdds(TypedDict):
     key: str
@@ -35,15 +40,18 @@ class BookmakerOdds(TypedDict):
     last_update: datetime
     markets: list[MarketOdds]
 
+
 class MarketPropOdds(TypedDict):
     key: str
     last_update: datetime
     outcomes: list[PropOdds]
 
+
 class BookmakerPropOdds(TypedDict):
     key: str
     title: str
     markets: list[MarketPropOdds]
+
 
 class EventOdds(TypedDict):
     id: str
@@ -51,4 +59,4 @@ class EventOdds(TypedDict):
     commence_time: datetime
     home_team: str
     away_team: str
-    bookmakers: list[Union[BookmakerOdds,BookmakerPropOdds]]
+    bookmakers: list[Union[BookmakerOdds, BookmakerPropOdds]]
