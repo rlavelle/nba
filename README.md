@@ -7,6 +7,7 @@ TODO:
 - Why are some players consistently over or under predicted?
 
 Backlog:
+- refactor production jobs into execution classes, getting cluttered
 - spread model needs a lot more EDA, currently removed from prod
 - look into pre season data for all types of modeling
 - look into win streak as a predictor
