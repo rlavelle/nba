@@ -51,7 +51,8 @@ if __name__ == "__main__":
         games = data_loader.get_data('games')
         game_data = format_game_data(games, ml_results)
 
-        player_data = data_loader.get_player_type(ptypes=(PlayerType.STARTER,))
+        ptypes = (PlayerType.STARTER, PlayerType.STARTER_PLUS, PlayerType.PRIMARY_BENCH)
+        player_data = data_loader.get_player_type(ptypes=ptypes)
         player_data = format_player_data(player_data, prop_results)
     except Exception as e:
         logger.log(f'[ERROR LOADING FROM NBA DATA LOADER]: {e}')
