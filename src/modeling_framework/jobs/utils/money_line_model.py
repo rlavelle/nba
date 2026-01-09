@@ -21,6 +21,7 @@ def insert_ml_results(ml_results: pd.DataFrame):
 
 
 def build_money_line_model(train_data: pd.DataFrame) -> Model:
+    train_data = train_data.copy()
     train_data[target] = (train_data.points > 0).astype(int)
 
     params = {

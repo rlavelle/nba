@@ -13,6 +13,7 @@ target = 'spread'
 
 
 def build_spread_model(train_data: pd.DataFrame) -> Tuple[Model, Standardizer]:
+    train_data = train_data.copy()
     train_data[target] = train_data.points.abs()
 
     params = {

@@ -82,13 +82,14 @@ if __name__ == "__main__":
         logger.log(f'[ERROR BUILDING PROP MODEL]: {e}')
         insert_error({'msg': str(e)})
 
-    try:
-        spread_model, standardizer = build_spread_model(train_game_data)
-        t = time.time()
-        logger.log(f'[BUILT SPREAD MODEL]: {round((t - start), 2)}s')
-    except Exception as e:
-        logger.log(f'[ERROR BUILDING PROP MODEL]: {e}')
-        insert_error({'msg': str(e)})
+    # TODO: fix spread model
+    # try:
+    #     spread_model, standardizer = build_spread_model(train_game_data)
+    #     t = time.time()
+    #     logger.log(f'[BUILT SPREAD MODEL]: {round((t - start), 2)}s')
+    # except Exception as e:
+    #     logger.log(f'[ERROR BUILDING PROP MODEL]: {e}')
+    #     insert_error({'msg': str(e)})
 
     try:
         money_line_model = build_money_line_model(train_game_data)
@@ -108,16 +109,17 @@ if __name__ == "__main__":
             logger.log(f'[ERROR SAVING PROP MODEL]: {e}')
             insert_error({'msg': str(e)})
 
-    if spread_model and not args.skip_save:
-        try:
-            path = os.path.join(model_path, 'spread', f'{curr_date}')
-            os.makedirs(path, exist_ok=True)
-            spread_model.save(fpath=os.path.join(path, f'{spread_model.name}.pkl'))
-            pickle.dump(standardizer, open(os.path.join(path, 'std.pkl'), 'wb'))
-            logger.log(f'[SPREAD MODEL SAVED]: {path}')
-        except Exception as e:
-            logger.log(f'[ERROR SAVING SPREAD MODEL]: {e}')
-            insert_error({'msg': str(e)})
+    # TODO: fix spread model
+    # if spread_model and not args.skip_save:
+    #     try:
+    #         path = os.path.join(model_path, 'spread', f'{curr_date}')
+    #         os.makedirs(path, exist_ok=True)
+    #         spread_model.save(fpath=os.path.join(path, f'{spread_model.name}.pkl'))
+    #         pickle.dump(standardizer, open(os.path.join(path, 'std.pkl'), 'wb'))
+    #         logger.log(f'[SPREAD MODEL SAVED]: {path}')
+    #     except Exception as e:
+    #         logger.log(f'[ERROR SAVING SPREAD MODEL]: {e}')
+    #         insert_error({'msg': str(e)})
 
     if money_line_model and not args.skip_save:
         try:
