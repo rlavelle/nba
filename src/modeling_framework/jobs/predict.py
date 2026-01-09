@@ -15,7 +15,7 @@ from src.feature_engineering.utils.build_features import build_game_lvl_fts, bui
 from src.feature_engineering.utils.cache import gen_cache_file
 from src.logging.logger import Logger
 from src.modeling_framework.jobs.utils.formatting import fmt_diff_data, fmt_player_data, \
-    pretty_print_results, send_results
+    pretty_print_results, send_results, send_data
 from src.modeling_framework.jobs.utils.money_line_model import insert_ml_results, \
     build_money_line_results
 from src.modeling_framework.jobs.utils.prop_model import insert_prop_results, \
@@ -39,6 +39,7 @@ if __name__ == "__main__":
     parser.add_argument('--clean-up', action='store_true', help='remove previous feature cache')
     parser.add_argument('--recent', action='store_true', help='use most recent feature cache file')
     parser.add_argument('--cache', action='store_true', help='use cache')
+    parser.add_argument('--send-data', action='store_true', help='send data as csv')
     args = parser.parse_args()
 
     date = datetime.datetime.strptime(args.date, '%Y-%m-%d') if args.date else datetime.date.today()
@@ -151,7 +152,7 @@ if __name__ == "__main__":
     )
 
     try:
-        msg_md, msg_html = pretty_print_results(prop_results, ml_results)
+        msg_md, msg_html, ml_r, prop_r = pretty_print_results(prop_results, ml_results)
         logger.log(msg_md)
     except Exception as e:
         logger.log(f'[ERROR ON PRETTY PRINT]: {e}')
@@ -162,8 +163,11 @@ if __name__ == "__main__":
 
         exit()
 
+    if not args.offline and args.send_data:
+        send_data(f'NBA Results (Raw Data) {curr_date}', ml_r, prop_r, args.admin)
+
     if not args.offline:
-        send_results(f'NBA Results {datetime.date.today()}', msg_html, args.admin)
+        send_results(f'NBA Results {curr_date}', msg_html, args.admin)
 
     if not args.skip_save:
         path = os.path.join(model_path, 'prop', f'{curr_date}')

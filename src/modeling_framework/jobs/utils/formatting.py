@@ -1,4 +1,5 @@
 import datetime
+import os
 
 import numpy as np
 import pandas as pd
@@ -147,7 +148,7 @@ def pretty_print_results(prop_r, ml_r):
     if ml_r.empty and prop_r.empty:
         return "No odds available today, go home", "No odds available today, go home"
 
-    return md, html
+    return md, html, ml_r, prop_r
 
 
 def pretty_print_grading(game_wins, player_wins, game_wins_prev, player_wins_prev):
@@ -235,6 +236,25 @@ def prep_odds(odds: pd.DataFrame, bookmakers: list[str], curr_date: int):
     odds = odds[(odds.bookmaker.isin(bookmakers)) & (odds.dint_tmp == curr_date)]
     odds = odds.drop(columns=['last_update', 'dint', 'dint_tmp'])
     return odds.drop_duplicates(keep='first')
+
+
+def send_data(subject, d1, d2, admin):
+    fp1 = '/tmp/ml_results.csv'
+    fp2 = '/tmp/prop_results.csv'
+    d1.to_csv(fp1, index=False)
+    d2.to_csv(fp2, index=False)
+
+    email_sender = EmailSender()
+    email_sender.read_recipients_from_file()
+    email_sender.set_subject(subject)
+    email_sender.set_body('')
+    email_sender.add_attachment(fp1)
+    email_sender.add_attachment(fp2)
+    email_sender.send_email(admin=admin)
+
+    # clean up
+    os.remove(fp1)
+    os.remove(fp2)
 
 
 def send_results(subject, msg, admin):
