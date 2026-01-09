@@ -177,7 +177,8 @@ def build_player_lvl_fts(logger: Logger = None, cache: bool = False, date: int =
         t = time.time()
         logger.log(f'[DATA LOADED]: {round((t - start), 2)}s')
 
-    player_data = data_loader.get_player_type(ptypes=(PlayerType.STARTER, PlayerType.STARTER_PLUS, PlayerType.PRIMARY_BENCH))
+    ptypes = (PlayerType.STARTER, PlayerType.STARTER_PLUS, PlayerType.PRIMARY_BENCH)
+    player_data = data_loader.get_player_type(ptypes=ptypes)
     player_data = player_data[~player_data.spread.isna()].copy()
     player_data = player_data.drop(columns=['position'])
     player_data = player_data.dropna()
