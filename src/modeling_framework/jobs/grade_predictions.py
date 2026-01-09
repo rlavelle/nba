@@ -81,7 +81,7 @@ if __name__ == "__main__":
         exit()
 
     if not args.offline:
-        send_results(f'NBA Bet Grading {datetime.date.today()}', msg_html, args.admin)
+        send_results(f'NBA Bet Grading {date}', msg_html, args.admin)
 
     if not args.offline:
         logger.email_log()
