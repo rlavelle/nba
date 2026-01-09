@@ -8,6 +8,7 @@ from src.modeling_framework.framework.constants import FS_MINUTES, FS_POINTS
 from src.modeling_framework.framework.model import Model
 from src.modeling_framework.jobs.utils.formatting import prep_odds
 from src.modeling_framework.models.regression import LinearModel, RidgeModel
+from src.types.player_types import PlayerType
 
 target = 'ppm_diff'
 
@@ -71,6 +72,14 @@ def build_player_prop_results(prop_model: Model,
             # TODO: build this out to all?
             prop_odds = prep_odds(prop_odds, bookmakers=['draftkings'], curr_date=curr_date)
             prop_results = pd.merge(prop_preds, prop_odds, on='player_id', how='left')
+
+            ptypes = [PlayerType.STARTER, PlayerType.STARTER_PLUS, PlayerType.PRIMARY_BENCH]
+            tmp = train_player_data[train_player_data.season==train_player_data.season.max()].copy()
+            tmp = tmp[tmp.player_type.isin([p.value for p in ptypes])]
+            valid_ids = tmp.player_id.unique()
+
+            prop_results = prop_results[prop_results.player_id.isin(valid_ids)]
+
             logger.log(f'[MISSING PLAYERS FROM MODEL]: {prop_odds.price.isna().sum()}')
 
     return prop_results
