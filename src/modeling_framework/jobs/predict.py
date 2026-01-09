@@ -151,6 +151,11 @@ if __name__ == "__main__":
         money_line_model, money_line_odds, nxt_date, test_game_data, logger
     )
 
+    # get player types for props
+    if prop_results is not None:
+        tmp = train_player_data[train_player_data.season == train_player_data.season.max()].copy()
+        prop_results = pd.merge(prop_results, tmp[['player_id', 'player_type']].drop_duplicates())
+
     try:
         msg_md, msg_html, ml_r, prop_r = pretty_print_results(prop_results, ml_results)
         logger.log(msg_md)

@@ -87,7 +87,8 @@ def pretty_print_results(prop_r, ml_r):
         prop_r['delta_pct'] = prop_r['delta_pct'].apply(lambda x: f"{x:.1%}")
 
         prop_r = prop_r[['player_id', 'bookmaker',
-                         'description', 'price', 'point', 'preds', 'delta']].copy()
+                         'description', 'price', 'point', 'preds', 'delta',
+                         'player_type']].copy()
         prop_r = pd.merge(prop_r, players, on='player_id', how='left')
         prop_r = prop_r.drop(columns=['player_slug'])
 
@@ -146,7 +147,7 @@ def pretty_print_results(prop_r, ml_r):
     """
 
     if ml_r.empty and prop_r.empty:
-        return "No odds available today, go home", "No odds available today, go home"
+        return "No odds available today, go home", "No odds available today, go home", None, None
 
     return md, html, ml_r, prop_r
 
