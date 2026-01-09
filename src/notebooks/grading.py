@@ -53,12 +53,15 @@ player_data = pd.merge(prop_results, player_data,
                        on=['player_id', 'dint'],
                        how='left')
 
-games['team_id'] = games.team_id.astype(int)
-ml_results['team_id'] = ml_results.team_id.astype(int)
+games['team_id'] = games.team_id.astype(str)
+ml_results['team_id'] = ml_results.team_id.astype(str)
 game_data = pd.merge(ml_results, games,
                      on=['team_id', 'dint'],
                      how='left')
     
+#%%
+x = games[games.team_id==15015]
+x
 
 #%%
 tmp = player_data[~player_data.points.isna()].copy()
@@ -67,6 +70,47 @@ tmp['win'] = np.where(((tmp.description == 'Over') & (tmp.points > tmp.point)) |
 tmp['y'] = (tmp.bet == tmp.win).astype(int)
 tmp['delta'] = np.abs(tmp.preds - tmp.point)
 
+#%%
+wins = tmp[tmp.win == 1].copy()
+
+#%%
+wins.bet.mean()
+
+#%%
+results = []
+max_floor = int(wins.delta.max())
+
+for threshold in range(0, max_floor + 1):
+
+    subset = wins[wins.delta > threshold].copy()
+    subset2 = wins[(wins.delta >= threshold) & (wins.delta < threshold+1)]
+    group_name = f"delta > {threshold}"
+    
+    mean_bet = subset.bet.mean()
+    mean_bet2 = subset2.bet.mean()
+    count = len(subset)
+    count2 = len(subset2)
+    results.append({
+        'group': group_name,
+        'threshold': threshold if threshold != -1 else None,
+        'cum_bet': mean_bet,
+        'bucket_bet': mean_bet2,
+        'n1': count,
+        'n2': count2
+    })
+
+# Convert to DataFrame
+cumulative_groups = pd.DataFrame(results)
+
+#%%
+wins.groupby()
+
+#%%
+prev_date =datetime.date.today() - datetime.timedelta(days=1)
+prev_date
+
+
+#%%
 a = tmp[tmp.description == 'Over'].copy()
 b = tmp[tmp.description == 'Under'].copy()
 
@@ -123,16 +167,17 @@ odds = odds[(odds.dint_tmp == curr_date)]
 odds = odds[(odds.dint==curr_nxt_date)]
 
 #%%
+game_data = pd.merge(ml_results, games,
+                     on=['team_id', 'dint'],
+                     how='left')
+
 game_data = game_data[~game_data.game_id.isna()].copy()
 
-#%%
 game_data['vegas_preds'] = 1/game_data.price
 
-#%%
 winners_idx = game_data.groupby(game_data.game_id).points.idxmax()
 pred_winners_idx = game_data.groupby(game_data.game_id).preds.idxmax()
 vegas_winners_idx = game_data.groupby(game_data.game_id).vegas_preds.idxmax()
-
 
 # Create win column
 game_data['win'] = 0
@@ -144,6 +189,19 @@ game_data.loc[pred_winners_idx, 'win_pred'] = 1
 
 game_data['win_vegas'] = 0
 game_data.loc[vegas_winners_idx, 'win_vegas'] = 1
+
+#%%
+wins = game_data[game_data.win==1].copy()
+vegas_res = wins.win_vegas.mean()
+model_res = wins.win_pred.mean()
+n = wins.shape[0]
+
+#%%
+
+
+
+#%%
+vegas_res, model_res, n
 
 #%%
 game_bets = game_data[game_data.win_pred==1].copy()
@@ -161,3 +219,74 @@ tmp.shape
 
 #%%
 tmp[tmp.win==1].win_pred.mean(), tmp[tmp.win==1].win_vegas.mean()
+
+#%%
+stake = 1
+game_bets['ret'] = np.where(game_bets.win == 1, game_bets.price * stake, 0)
+game_bets['p'] = np.where(game_bets.win == 1, (game_bets.price - 1) * stake, -stake)
+
+#%%
+game_bets.ret.sum(), game_bets.p.sum(), game_bets.p.sum() / game_bets.shape[0]*stake
+
+#%%
+game_data[game_data.win==1].win_pred.mean(), game_data[game_data.win_pred==1].win.mean()
+
+#%%
+wins = game_data[game_data.win==1].copy()
+
+#%%
+wins.shape[0], game_data.shape[0]
+
+#%%
+prev_date = date_to_dint(datetime.date.today() + datetime.timedelta(days=-1))
+prev_date
+
+#%%
+import os
+os.pwd()
+
+#%%
+x = os.listdir(os.getcwd() + '/data/cache/')
+x = [y for y in x if '.pkl' in y]
+int(max(x)[:8])
+
+#%%
+a = pd.read_csv('/tmp/recent.csv')
+b = pd.read_csv('/tmp/notrecent.csv')
+
+ids = a.team_id
+b = b[b.team_id.isin(ids)].copy()
+
+#%%
+z = pd.merge(a,b,on=['team_id'], how='left')
+
+#%%
+def get_ft_cols(df):
+    wanted_subs = ["_bayes_post", "_1g", "_sma_", "_ema_", "_cum_ssn_", "_hot_streak"]
+
+    cols = [
+        col for col in df.columns
+        if any(sub in col for sub in wanted_subs)
+    ]
+
+    return cols
+
+fts = get_ft_cols(a)
+
+#%%
+zz = pd.DataFrame()
+for col in fts:
+    zz[col] = z[col + '_y'] - z[col + '_x']
+    
+
+#%%
+m = zz[zz != 0]
+
+#%%
+a = pd.read_pickle('data/cache/20251028_game_fts.pkl')
+b = pd.read_pickle('data/cache/20251231_game_fts.pkl')
+
+#%%
+
+
+
