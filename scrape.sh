@@ -1,6 +1,10 @@
 #!/bin/bash
-venv/bin/python3 -m src.scrapers.jobs.get_prev_nba_data --date=$(date -v -1d +%Y-%m-%d) && \
-venv/bin/python3 -m src.scrapers.jobs.get_next_nba_data && \
-venv/bin/python3 -m src.modeling_framework.jobs.build_models --cache && \
-venv/bin/python3 -m src.modeling_framework.jobs.predict --cache --clean-up && \
-venv/bin/python3 -m src.modeling_framework.jobs.grade_predictions --admin
+YESTERDAY=$(date -v -1d +%Y-%m-%d)
+TODAY=$(date +%Y-%m-%d)
+VENV_PATH="venv/bin/python3"
+
+$VENV_PATH -m src.scrapers.jobs.get_prev_nba_data --date=$YESTERDAY && \
+$VENV_PATH -m src.scrapers.jobs.get_next_nba_data && \
+$VENV_PATH -m src.modeling_framework.jobs.build_models --cache --date=$TODAY && \
+$VENV_PATH -m src.modeling_framework.jobs.predict --cache --clean-up --date=$TODAY && \
+$VENV_PATH -m src.modeling_framework.jobs.grade_predictions --admin --date=$TODAY
