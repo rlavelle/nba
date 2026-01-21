@@ -70,7 +70,7 @@ if __name__ == "__main__":
 
     try:
         msg_md, msg_html = pretty_print_grading(
-            game_wins, player_wins, game_wins_prev, player_wins_prev
+            date, game_wins, player_wins, game_wins_prev, player_wins_prev
         )
         logger.log(msg_md)
 

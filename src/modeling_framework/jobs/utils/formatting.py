@@ -69,7 +69,7 @@ def format_testing_data(odds, test_data):
     return fmt_diff_data(tmp_home), fmt_diff_data(tmp_away)
 
 
-def pretty_print_results(prop_r, ml_r):
+def pretty_print_results(date, prop_r, ml_r):
     prop_r = prop_r.copy()
     ml_r = ml_r.copy()
 
@@ -108,7 +108,7 @@ def pretty_print_results(prop_r, ml_r):
         ml_r = pd.merge(ml_r, teams, on='team_id', how='left')
 
     md = f"""
-    # NBA Results {datetime.date.today()}
+    # NBA Results {date}
     Column descriptions:
     - price: decimal odds (1.83 means 83 cents back per dollar bet)
     - point: vegas line for prop bet
@@ -128,7 +128,7 @@ def pretty_print_results(prop_r, ml_r):
     """
 
     html = f"""
-    # NBA Results {datetime.date.today()}
+    # NBA Results {date}
     Column descriptions:
     - price: decimal odds (1.83 means 83 cents back per dollar bet)
     - point: vegas line for prop bet
@@ -152,7 +152,7 @@ def pretty_print_results(prop_r, ml_r):
     return md, html, ml_r, prop_r
 
 
-def pretty_print_grading(game_wins, player_wins, game_wins_prev, player_wins_prev):
+def pretty_print_grading(date, game_wins, player_wins, game_wins_prev, player_wins_prev):
     # TODO: this if very sloppy thrown together, plz fix later, thx
     rtotal = hit_by_delta(player_wins)
     rprev = hit_by_delta(player_wins_prev)
@@ -162,7 +162,7 @@ def pretty_print_grading(game_wins, player_wins, game_wins_prev, player_wins_pre
                                                                                                player_wins_prev)
 
     md = f"""
-    # NBA Bet Grading {datetime.date.today() + datetime.timedelta(days=-1)}
+    # NBA Bet Grading {date + datetime.timedelta(days=-1)}
        
     ### Yesterdays Results
     Vegas favorites: {round(vegas_ml_res1, 2) * 100}%
@@ -192,7 +192,7 @@ def pretty_print_grading(game_wins, player_wins, game_wins_prev, player_wins_pre
     """
 
     html = f"""
-    # NBA Bet Grading {datetime.date.today() + datetime.timedelta(days=-1)}
+    # NBA Bet Grading {date + datetime.timedelta(days=-1)}
        
     ### Yesterdays Results
     Vegas favorites: {round(vegas_ml_res1, 2) * 100}%

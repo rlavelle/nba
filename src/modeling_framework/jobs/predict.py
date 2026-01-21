@@ -157,7 +157,7 @@ if __name__ == "__main__":
         prop_results = pd.merge(prop_results, tmp[['player_id', 'player_type']].drop_duplicates())
 
     try:
-        msg_md, msg_html, ml_r, prop_r = pretty_print_results(prop_results, ml_results)
+        msg_md, msg_html, ml_r, prop_r = pretty_print_results(date, prop_results, ml_results)
         logger.log(msg_md)
     except Exception as e:
         logger.log(f'[ERROR ON PRETTY PRINT]: {e}')
