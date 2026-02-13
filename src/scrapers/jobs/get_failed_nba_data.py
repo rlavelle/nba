@@ -90,7 +90,7 @@ if __name__ == "__main__":
 
     try:
         tmp = get_incomplete_games(data_path)
-        logger.log(f'[N RECLAIMED GAMES]: {len(incomplete_games - tmp)}')
+        logger.log(f'[N RECLAIMED GAMES]: {len(incomplete_games) - len(tmp)}')
     except Exception as e:
         logger.log(f'[ERROR COLLECTING INCOMPLETE GAMES]: {e}')
         insert_error({'msg': str(e)})
