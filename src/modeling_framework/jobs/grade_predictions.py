@@ -13,14 +13,19 @@ from src.utils.date import date_to_dint
 
 if __name__ == "__main__":
     start = time.time()
-    logger = Logger(fpath='cron_path', daily_cron=True, admin=True)
-    logger.log(f'[STARTING GRADING]')
 
     parser = argparse.ArgumentParser(description='NBA prediction script')
     parser.add_argument('--date', type=str, help='Date to pull in YYYY-MM-DD format (default: today)')
     parser.add_argument('--offline', action='store_true', help='offline testing')
     parser.add_argument('--admin', action='store_true', help='admin only email')
     args = parser.parse_args()
+
+    if not args.offline:
+        logger = Logger(name='grade_predictions', daily_cron=True, admin=True)
+    else:
+        logger = Logger(daily_cron=True, admin=True)
+
+    logger.log(f'[STARTING GRADING]')
 
     date = datetime.datetime.strptime(args.date, '%Y-%m-%d') if args.date else datetime.date.today()
     curr_date = date_to_dint(date)

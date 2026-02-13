@@ -62,6 +62,8 @@ def get_upcoming_games(logger: Logger):
             #       half the games are on d1 and the other on d2 depending on start time
             #       but then the previous days games are also on d1, need to add commence_time
             #       into the schema for odds data then select "new" games based on GMT conversion
+            #       Example: odds were scraped at 8pm EST (missed run) and the usage of "last_update"
+            #                caused the prediction script to use 2 days worth of games...
             #
             # TODO: how to backfill the whole DB... everything is cached?
             #       is there a way to reconcile games by seeing which have already happened
@@ -207,8 +209,8 @@ def dump_raw_odds(date_path, upcoming_games, res_spreads, res_ml, res_props):
         i += 1
 
 
-def insert_odds_tables(args, res_props, res_spreads, res_ml):
-    if args.skip_insert:
+def insert_odds_tables(skip_insert, res_props, res_spreads, res_ml):
+    if skip_insert:
         logger.log(f'[SKIP INSERT] Skipping insert for {dint}')
     else:
         names = ['player_props', 'game_spreads', 'game_ml']
@@ -226,10 +228,15 @@ def insert_odds_tables(args, res_props, res_spreads, res_ml):
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description='NBA odds data collection')
     parser.add_argument('--skip-insert', action='store_true', help='Skip the parse & insert step')
+    parser.add_argument('--offline', action='store_true', help='Run offline')
     args = parser.parse_args()
 
     start = time.time()
-    logger = Logger(fpath='cron_path', daily_cron=True, admin=True)
+
+    if not args.offline:
+        logger = Logger(name='odds_scraper', daily_cron=True, admin=True)
+    else:
+        logger = Logger(daily_cron=True, admin=True)
 
     try:
         config = configparser.ConfigParser()
@@ -238,6 +245,10 @@ if __name__ == "__main__":
     except Exception as e:
         logger.log(f'[CONFIG LOAD ERROR]: {e}')
         insert_error({'msg': str(e)})
+
+        if not args.offline:
+            logger.email_log()
+
         exit()
 
     date = datetime.date.today()
@@ -253,7 +264,7 @@ if __name__ == "__main__":
 
         logger.log(f'[SUCCESS ODDS PULL]: {len(upcoming_games) // 2} games collected')
 
-        insert_odds_tables(args, res_props, res_spreads, res_ml)
+        insert_odds_tables(args.skip_insert, res_props, res_spreads, res_ml)
 
         end = time.time()
         logger.log(f'[DONE] Runtime: {round((end - start), 2)}s')
@@ -261,4 +272,5 @@ if __name__ == "__main__":
     except Exception as e:
         logger.log(f'[ERROR]: {e}')
 
-    logger.email_log()
+    if not args.offline:
+        logger.email_log()

@@ -27,8 +27,6 @@ from src.utils.date import date_to_dint
 
 if __name__ == "__main__":
     start = time.time()
-    logger = Logger(fpath='cron_path', daily_cron=True, admin=True)
-    logger.log(f'[STARTING PREDICTIONS]')
 
     parser = argparse.ArgumentParser(description='NBA prediction script')
     parser.add_argument('--date', type=str, help='Date to pull in YYYY-MM-DD format (default: today)')
@@ -41,6 +39,13 @@ if __name__ == "__main__":
     parser.add_argument('--cache', action='store_true', help='use cache')
     parser.add_argument('--send-data', action='store_true', help='send data as csv')
     args = parser.parse_args()
+
+    if not args.offline:
+        logger = Logger(name='predictions', daily_cron=True, admin=True)
+    else:
+        logger = Logger(daily_cron=True, admin=True)
+
+    logger.log(f'[STARTING PREDICTIONS]')
 
     date = datetime.datetime.strptime(args.date, '%Y-%m-%d') if args.date else datetime.date.today()
     curr_date = date_to_dint(date)

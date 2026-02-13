@@ -117,10 +117,13 @@ def parse_and_insert_if_complete(date: datetime, data_path: str, logger: Logger)
             insert_error({'msg': str(e)})
 
 
-def update_nba_data(logger: Logger, args):
+def update_nba_data(logger: Logger,
+                    date: str | None,
+                    skip_scrape: bool,
+                    skip_insert: bool):
     start = time.time()
 
-    date = datetime.strptime(args.date, "%Y-%m-%d") if args.date else datetime.today()
+    date = datetime.strptime(date, "%Y-%m-%d") if date else datetime.today()
     dint = int(date.strftime('%Y%m%d'))
 
     api = NBAStatsApi(logger=logger)
@@ -134,14 +137,14 @@ def update_nba_data(logger: Logger, args):
 
     date_path = os.path.join(data_path, str(dint))
 
-    if args.skip_scrape:
+    if skip_scrape:
         logger.log(f'[SKIP SCRAPE] Skipping scrape step for {dint}')
     elif is_date_data_complete(date_path, dint):
         logger.log(f'[SKIP] Data already complete for {dint}')
     else:
         scrape_games_for_day(date, data_path, api, logger, boxscores)
 
-    if args.skip_insert:
+    if skip_insert:
         logger.log(f'[SKIP INSERT] Skipping parse & insert for {dint}')
     else:
         parse_and_insert_if_complete(date, data_path, logger)
@@ -157,17 +160,25 @@ if __name__ == "__main__":
     parser.add_argument('--date', type=str, help='Date to scrape in YYYY-MM-DD format (default: today)')
     parser.add_argument('--skip-scrape', action='store_true', help='Skip the scraping step')
     parser.add_argument('--skip-insert', action='store_true', help='Skip the parse & insert step')
+    parser.add_argument('--offline', action='store_true', help='Run offline')
+
     args = parser.parse_args()
 
     retries = args.retries if args.retries else 5
     delay = args.delay if args.delay else 10
 
-    logger = Logger(fpath='cron_path', daily_cron=True, admin=True)
+    if not args.offline:
+        logger = Logger(name='game_scrape', daily_cron=True, admin=True)
+    else:
+        logger = Logger(daily_cron=True, admin=True)
 
     for attempt in range(1, retries + 1):
         try:
             logger.log(f'[ATTEMPT {attempt}]')
-            update_nba_data(logger, args)
+            update_nba_data(logger=logger,
+                            date=args.date,
+                            skip_scrape=args.skip_scrape,
+                            skip_insert=args.skip_insert)
             break
         except Exception as e:
             if attempt < retries:
@@ -176,4 +187,5 @@ if __name__ == "__main__":
                 logger.log(f'[COMPLETE FAILURE]')
                 insert_error({'msg': f'complete failure after {retries}: {str(e)}'})
 
-    logger.email_log()
+    if not args.offline:
+        logger.email_log()
