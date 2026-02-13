@@ -107,7 +107,7 @@ def pretty_print_results(date, prop_r, ml_r):
         ml_r = ml_r[['team_id', 'bookmaker', 'price', 'price_pred', 'vegas_preds', 'preds', 'is_home']].copy()
         ml_r = pd.merge(ml_r, teams, on='team_id', how='left')
 
-    md = f"""
+    explanation = f"""
     # NBA Results {date}
     Column descriptions:
     - price: decimal odds (1.83 means 83 cents back per dollar bet)
@@ -115,7 +115,12 @@ def pretty_print_results(date, prop_r, ml_r):
     - preds: model prediction (price_pred is model predicted odds for moneyline)
     
     prediction for prop bets is the predicted points scored for a player, prediction for moneyline is percent chance of win, or predicted odds.
-    
+    """
+
+    warning = "*Report generated automatically, Rowan Lavelle is NOT liable for your losses and gambling addiction."
+
+    md = f"""
+    {explanation}
     
     ### PLAYER PROPS
     {prop_r.to_markdown(index=False)}
@@ -124,18 +129,12 @@ def pretty_print_results(date, prop_r, ml_r):
     {ml_r.to_markdown(index=False)}
     
     -------------------------------------
-    *Report generated automatically, Rowan Lavelle is NOT liable for your losses and gambling addiction.
+    {warning}
     """
 
     html = f"""
-    # NBA Results {date}
-    Column descriptions:
-    - price: decimal odds (1.83 means 83 cents back per dollar bet)
-    - point: vegas line for prop bet
-    - preds: model prediction (price_pred is model predicted odds for moneyline)
+    {explanation}
     
-    prediction for prop bets is the predicted points scored for a player, prediction for moneyline is percent chance of win, or predicted odds.
-
     ### PLAYER PROPS
     {prop_r.to_html(index=False)}
 
@@ -143,7 +142,7 @@ def pretty_print_results(date, prop_r, ml_r):
     {ml_r.to_html(index=False)}
 
     -------------------------------------
-    *Report generated automatically, Rowan Lavelle is NOT liable for your losses and gambling addiction.
+    {warning}
     """
 
     if ml_r.empty and prop_r.empty:
@@ -161,64 +160,54 @@ def pretty_print_grading(date, game_wins, player_wins, game_wins_prev, player_wi
     vegas_ml_res1, model_ml_res1, diff1, ngames1, model_prop_res1, nplayers1 = get_pct_results(game_wins_prev,
                                                                                                player_wins_prev)
 
-    md = f"""
-    # NBA Bet Grading {date + datetime.timedelta(days=-1)}
-       
-    ### Yesterdays Results
+    title = f'# NBA Bet Grading {date + datetime.timedelta(days=-1)}'
+
+    yesterday_results = f"""
+    ### Yesterdays Results (n_games={ngames1}, n_props={nplayers1})
     Vegas favorites: {round(vegas_ml_res1, 2) * 100}%
     Model favorites: {round(model_ml_res1, 2) * 100}%
     Vegas fade Model favorite: {round(diff1, 2) * 100}%
-    N Moneyline bets: {ngames1}
-   
     Model Prop O/U: {round(model_prop_res1, 2) * 100}%
-    N Prop bets: {nplayers1}
+    """
+
+    season_results = f"""
+    ### Total Season Results (n_games={ngames}, n_props={nplayers})
+    Vegas favorites: {round(vegas_ml_res, 2) * 100}%
+    Model favorites: {round(model_ml_res, 2) * 100}%
+    Vegas fade Model favorite: {round(diff, 2) * 100}%   
+    Model Prop O/U: {round(model_prop_res, 2) * 100}%
+    """
+
+    warning = "*Report generated automatically, Rowan Lavelle is NOT liable for your losses and gambling addiction."
+
+    md = f"""
+    {title}
+   
+    {yesterday_results}
    
     {rprev.to_markdown(index=False)}
    
-    ### Total Season Results
-    Vegas favorites: {round(vegas_ml_res, 2) * 100}%
-    Model favorites: {round(model_ml_res, 2) * 100}%
-    Vegas fade Model favorite: {round(diff, 2) * 100}%
-    N Moneyline bets: {ngames}
-   
-    Model Prop O/U: {round(model_prop_res, 2) * 100}%
-    N Prop bets: {nplayers}
+    {season_results}
    
     {rtotal.to_markdown(index=False)}
    
-
     -------------------------------------
-    *Report generated automatically, Rowan Lavelle is NOT liable for your losses and gambling addiction.
+    {warning}
     """
 
     html = f"""
-    # NBA Bet Grading {date + datetime.timedelta(days=-1)}
+    {title}
        
-    ### Yesterdays Results
-    Vegas favorites: {round(vegas_ml_res1, 2) * 100}%
-    Model favorites: {round(model_ml_res1, 2) * 100}%
-    Vegas fade Model favorite: {round(diff1, 2) * 100}%
-    N Moneyline bets: {ngames1}
-   
-    Model Prop O/U: {round(model_prop_res1, 2) * 100}%
-    N Prop bets: {nplayers1}
+    {yesterday_results}
    
     {rprev.to_html(index=False)}
    
-    ### Total Season Results
-    Vegas favorites: {round(vegas_ml_res, 2) * 100}%
-    Model favorites: {round(model_ml_res, 2) * 100}%
-    Vegas fade Model favorite: {round(diff, 2) * 100}%
-    N Moneyline bets: {ngames}
-   
-    Model Prop O/U: {round(model_prop_res, 2) * 100}%
-    N Prop bets: {nplayers}
+    {season_results}
    
     {rtotal.to_html(index=False)}
    
-
     -------------------------------------
-    *Report generated automatically, Rowan Lavelle is NOT liable for your losses and gambling addiction.
+    {warning}
     """
 
     if game_wins_prev.empty and player_wins_prev.empty:
