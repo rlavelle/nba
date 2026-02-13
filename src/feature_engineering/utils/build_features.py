@@ -101,6 +101,8 @@ def build_game_lvl_fts(logger: Logger = None, cache: bool = False, date: int = N
         if ret is not None:
             # when pulling from recent cache need to remove future data,
             # but keep nulled future rows
+            # TODO: somehow there is model bleed, predictions are not the same
+            #       as when they are run without --recent
             if date and recent:
                 ret = ret[ret.date <= dint_to_date(date)].copy()
                 ret.loc[ret.date == dint_to_date(date), 'date'] = pd.Timestamp('2030-01-01')
