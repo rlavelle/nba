@@ -36,16 +36,14 @@ data_loader = NBADataLoader()
 data_loader.load_data()
 
 games = data_loader.get_data('games')
-games = games.dropna()
 games = games.sort_values(by=['team_id', 'season', 'date'])
 
-player_data = data_loader.get_player_type(ptypes=(PlayerType.STARTER,))
+player_data = data_loader.get_player_type(ptypes=(PlayerType.STARTER, PlayerType.STARTER_PLUS, PlayerType.PRIMARY_BENCH))
 player_data = player_data[~player_data.spread.isna()].copy()
 player_data = player_data.drop(columns=['position'])
-player_data = player_data.dropna()
 player_data = player_data.sort_values(by=['player_id', 'season', 'date'])
 
-player_data = pd.merge(prop_results, player_data,
+player_results = pd.merge(prop_results, player_data,
                        on=['player_id', 'dint'],
                        how='left')
 
@@ -56,10 +54,57 @@ game_data = pd.merge(ml_results, games,
                      how='left')
 
 #%%
-player_data['delta'] = player_data.preds - player_data.point
+player_data.player_type.unique()
 
 #%%
-x = player_data.groupby([player_data.player_id, player_data.player_slug]).delta.mean()
+player_results['delta'] = player_results.preds - player_results.point
 
 #%%
-player_data.player_slug.unique()
+x = player_results.groupby([player_results.player_id, player_results.player_slug]).delta.mean()
+
+#%%
+z = player_results[player_results.player_slug == 'kelly-oubre-jr'].copy()
+
+#%%
+player_data[player_data.season == player_data.season.max()].player_type.values[0]
+
+#%%
+x = player_results[player_results.player_id == 203954]
+xx = player_data[player_data.player_id == 203954]
+
+#%%
+a = games[games.dint == 20251226]
+
+#%%%
+203954
+203935
+
+#%%
+a = pd.read_pickle('data/cache/20260107_player_fts.pkl')
+
+#%%
+a.player_type.unique()
+
+#%%
+game_data = game_data[~game_data.game_id.isna()].copy()
+game_data['vegas_preds'] = 1.0 / game_data.price
+
+winners_idx = game_data.groupby(game_data.game_id).points.idxmax()
+pred_winners_idx = game_data.groupby(game_data.game_id).preds.idxmax()
+vegas_winners_idx = game_data.groupby(game_data.game_id).vegas_preds.idxmax()
+
+game_data['win'] = 0
+game_data.loc[winners_idx, 'win'] = 1
+
+game_data['win_pred'] = 0
+game_data.loc[pred_winners_idx, 'win_pred'] = 1
+
+game_data['win_vegas'] = 0
+game_data.loc[vegas_winners_idx, 'win_vegas'] = 1
+    
+game_wins = game_data[game_data.win == 1].copy()
+
+#%%
+game_wins.win.mean()
+
+
