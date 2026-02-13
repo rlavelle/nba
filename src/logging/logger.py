@@ -8,7 +8,7 @@ from src.utils.date import date_to_dint
 
 
 class Logger:
-    def __init__(self, fpath: str = 'path', daily_cron: bool = False, admin: bool = False):
+    def __init__(self, name: str | None = None, daily_cron: bool = False, admin: bool = False):
         self.config = configparser.ConfigParser()
         self.config.read(CONFIG_PATH)
         self.admin = admin
@@ -16,9 +16,9 @@ class Logger:
         if daily_cron:
             today = date_to_dint(datetime.date.today())
             log_folder = self.config.get('LOG_PATH', 'logs_folder')
-            self.filename = os.path.join(log_folder, f'log_{today}.txt')
+            self.filename = os.path.join(log_folder, f'log_{name}_{today}.txt' if name else f'log_{today}.txt')
         else:
-            self.filename = self.config.get('LOG_PATH', fpath)
+            self.filename = self.config.get('LOG_PATH', 'path')
 
     def log(self, message: str, email=False):
         timestamp = datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')
