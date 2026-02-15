@@ -2,6 +2,7 @@ import argparse
 import configparser
 import os
 import time
+from datetime import datetime
 
 from src.config import CONFIG_PATH
 from src.db.utils import insert_error
@@ -38,7 +39,7 @@ def get_incomplete_games(data_path):
         path = os.path.join(data_path, folder)
 
         if int(is_date_data_complete(path, int(folder))) == 0:
-            incomplete_games.append(folder)
+            incomplete_games.append(datetime.strptime(folder, "%Y%m%d").strftime("%Y-%m-%d"))
 
     return incomplete_games
 
