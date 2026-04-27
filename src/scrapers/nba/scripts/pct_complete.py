@@ -4,7 +4,7 @@ import configparser
 import os
 
 from src.config import CONFIG_PATH
-from src.scrapers.nba.utils.validation import is_date_data_complete
+from src.scrapers.nba.utils.validation import is_date_data_complete, DataCompleteness
 from src.utils.file_io import get_dirs
 
 if __name__ == "__main__":
@@ -19,6 +19,7 @@ if __name__ == "__main__":
 
     for folder in folders:
         path = os.path.join(data_path, folder)
-        c += int(is_date_data_complete(path, int(folder)))
+        res = is_date_data_complete(path, int(folder))
+        c += int(res == DataCompleteness.COMPLETE)
 
     print(c / n)

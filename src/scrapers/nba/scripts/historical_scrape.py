@@ -11,7 +11,7 @@ from src.logging.logger import Logger
 from src.scrapers.nba.nba_stats_api import NBAStatsApi
 from src.scrapers.nba.utils.api_utils import fetch_and_save_boxscore
 from src.scrapers.nba.utils.parsing import parse_games
-from src.scrapers.nba.utils.validation import is_date_data_complete, is_game_data_complete
+from src.scrapers.nba.utils.validation import is_date_data_complete, is_game_data_complete, DataCompleteness
 from src.utils.date import generate_dates, date_to_dint, date_to_lookup
 
 if __name__ == "__main__":
@@ -37,7 +37,7 @@ if __name__ == "__main__":
             dint = date_to_dint(date)
 
             date_path = os.path.join(data_path, f'{dint}')
-            if is_date_data_complete(date_path, dint):
+            if is_date_data_complete(date_path, dint) == DataCompleteness.COMPLETE:
                 logger.log(f'skipping {dint}... data pulled')
                 continue
 
@@ -62,7 +62,7 @@ if __name__ == "__main__":
                 game_path = os.path.join(date_path, f'{game_id}')
                 game_file = os.path.join(game_path, f'{game_id}_meta.json')
 
-                if is_game_data_complete(game_path):
+                if is_game_data_complete(game_path) == DataCompleteness.COMPLETE:
                     logger.log(f'skipping {dint}-{game_id}... data pulled')
                     continue
 

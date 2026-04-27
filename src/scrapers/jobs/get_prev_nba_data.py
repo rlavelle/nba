@@ -15,7 +15,8 @@ from src.logging.logger import Logger
 from src.scrapers.nba.nba_stats_api import NBAStatsApi
 from src.scrapers.nba.utils.api_utils import fetch_and_save_boxscore
 from src.scrapers.nba.utils.parsing import parse_games, parse_dumped_data_by_day
-from src.scrapers.nba.utils.validation import is_date_data_complete, is_game_data_complete, is_empty_game, is_bad_game
+from src.scrapers.nba.utils.validation import is_date_data_complete, is_game_data_complete, is_empty_game, is_bad_game, \
+    DataCompleteness
 from src.utils.date import date_to_dint, date_to_lookup
 
 """
@@ -70,7 +71,7 @@ def scrape_games_for_day(date: datetime, data_path: str, api: NBAStatsApi, logge
                 logger.log(f'[EMPTY GAME]: {game_id}')
                 continue
 
-            if is_game_data_complete(game_path):
+            if is_game_data_complete(game_path) == DataCompleteness.COMPLETE:
                 logger.log(f'skipping {dint}-{game_id}... data already present')
                 continue
 
@@ -92,8 +93,10 @@ def parse_and_insert_if_complete(date: datetime, data_path: str, logger: Logger)
     dint = date_to_dint(date)
     date_path = os.path.join(data_path, str(dint))
 
-    if not is_date_data_complete(date_path, dint):
-        logger.log(f'[ERROR IN SCRAPE]: Not all data collected for {dint}')
+    res = is_date_data_complete(date_path, dint)
+    # TODO: is this going to be buggy? why were partials inserting before... check git history
+    if res != DataCompleteness.COMPLETE and res != DataCompleteness.PARTIAL_STATS_MISSED:
+        logger.log(f'[ERROR IN SCRAPE]: Not all data collected for {dint} - error {res}')
         if len(os.listdir(date_path)) == 1:
             logger.log(f'[EMPTY GAME DATA]: Check {date_path}/{dint}_games.json')
             return
@@ -139,7 +142,7 @@ def update_nba_data(logger: Logger,
 
     if skip_scrape:
         logger.log(f'[SKIP SCRAPE] Skipping scrape step for {dint}')
-    elif is_date_data_complete(date_path, dint):
+    elif is_date_data_complete(date_path, dint) == DataCompleteness.COMPLETE:
         logger.log(f'[SKIP] Data already complete for {dint}')
     else:
         scrape_games_for_day(date, data_path, api, logger, boxscores)

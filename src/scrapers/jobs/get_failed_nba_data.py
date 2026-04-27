@@ -8,7 +8,7 @@ from src.config import CONFIG_PATH
 from src.db.utils import insert_error
 from src.logging.logger import Logger
 from src.scrapers.jobs.get_prev_nba_data import update_nba_data
-from src.scrapers.nba.utils.validation import is_date_data_complete
+from src.scrapers.nba.utils.validation import is_date_data_complete, DataCompleteness
 from src.utils.file_io import get_dirs
 
 def collect_data_wth_retry(logger: Logger,
@@ -37,8 +37,8 @@ def get_incomplete_games(data_path):
     folders = get_dirs(data_path)
     for folder in folders:
         path = os.path.join(data_path, folder)
-
-        if int(is_date_data_complete(path, int(folder))) == 0:
+        res = is_date_data_complete(path, int(folder))
+        if res != DataCompleteness.COMPLETE and res != DataCompleteness.PARTIAL_STATS_MISSED:
             incomplete_games.append(datetime.strptime(folder, "%Y%m%d").strftime("%Y-%m-%d"))
 
     return incomplete_games
@@ -48,6 +48,7 @@ if __name__ == "__main__":
     parser.add_argument('--retries', type=int, help='Total retries for cron job (default: 5)')
     parser.add_argument('--delay', type=int, help='Delay for retries for cron job (default: 10')
     parser.add_argument('--offline', action='store_true', help='Run script offline (no email)')
+    parser.add_argument('--skip-scrape', action='store_true', help='Skip scraping step')
     args = parser.parse_args()
 
     if not args.offline:
@@ -70,7 +71,7 @@ if __name__ == "__main__":
 
     try:
         incomplete_games = get_incomplete_games(data_path)
-        logger.log(f'[INCOMPLETE GAMES]: {len(incomplete_games)}')
+        logger.log(f'[INCOMPLETE GAMES]: {len(incomplete_games)}\n{sorted(incomplete_games)}')
     except Exception as e:
         logger.log(f'[ERROR COLLECTING INCOMPLETE GAMES]: {e}')
         insert_error({'msg': str(e)})
@@ -80,21 +81,22 @@ if __name__ == "__main__":
 
         exit()
 
-    retries = args.retries if args.retries else 5
-    delay = args.delay if args.delay else 10
+    if not args.skip_scrape:
+        retries = args.retries if args.retries else 5
+        delay = args.delay if args.delay else 10
 
-    for game in incomplete_games:
-        collect_data_wth_retry(logger=logger,
-                               retries=retries,
-                               delay=delay,
-                               date=game)
+        for game in incomplete_games:
+            collect_data_wth_retry(logger=logger,
+                                   retries=retries,
+                                   delay=delay,
+                                   date=game)
 
-    try:
-        tmp = get_incomplete_games(data_path)
-        logger.log(f'[N RECLAIMED GAMES]: {len(incomplete_games) - len(tmp)}')
-    except Exception as e:
-        logger.log(f'[ERROR COLLECTING INCOMPLETE GAMES]: {e}')
-        insert_error({'msg': str(e)})
+        try:
+            tmp = get_incomplete_games(data_path)
+            logger.log(f'[N RECLAIMED GAMES]: {len(incomplete_games) - len(tmp)}')
+        except Exception as e:
+            logger.log(f'[ERROR COLLECTING INCOMPLETE GAMES]: {e}')
+            insert_error({'msg': str(e)})
 
     if not args.offline:
         logger.email_log()
