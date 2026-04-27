@@ -16,7 +16,11 @@ class NBAStatsApi(API):
         params = json.loads(self.config.get('TIME_PERIODS', period))
         params['GameID'] = game_id
 
-        response = self._get(url=url, params=params, headers=headers)
+        response = self._get(url=url,
+                             params=params,
+                             headers=headers,
+                             use_session=True,
+                             reset_session_per_retry=True)
         return response
 
     def get_games(self, date: str) -> dict[str]:
@@ -26,7 +30,11 @@ class NBAStatsApi(API):
             'gamedate': date,
             'platform': 'web'
         }
-        response = self._get(url=url, params=params, headers=headers)
+        response = self._get(url=url,
+                             params=params,
+                             headers=headers,
+                             use_session=True,
+                             reset_session_per_retry=True)
 
         if 'error' in response:
             return response
