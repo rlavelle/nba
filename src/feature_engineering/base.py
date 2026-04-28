@@ -1,7 +1,10 @@
+import pickle
 from abc import ABC, abstractmethod
 from typing import List
-
+import numpy as np
 import pandas as pd
+
+from src.logging.logger import Logger
 
 
 class BaseFeature(ABC):
@@ -25,16 +28,34 @@ class BaseFeature(ABC):
 
 
 class FeaturePipeline:
-    def __init__(self, features: List[BaseFeature]):
+    def __init__(self, features: List[BaseFeature], logger: Logger = None):
         self.features = features
+        self.logger = logger
 
     def transform(self,
                   df: pd.DataFrame,
                   sort_order: tuple[str] = ('player_id', 'season', 'date')) -> pd.DataFrame:
-        """Apply all features to the DataFrame"""
+        """Apply all features to the DataFrame in batches"""
         df = df.sort_values(list(sort_order))
+
+        new_columns = {}
         for feature in self.features:
-            df = feature(df)
+            try:
+                new_columns[feature.feature_name] = feature.calculate(df)
+            except Exception as e:
+                if self.logger:
+                    self.logger.log(f"[ERROR]: {feature.feature_name}: {e}")
+
+        if new_columns:
+            try:
+                z = np.array([a.values for a in new_columns.values()])
+                dfn = pd.DataFrame(data=z.T, columns=list(new_columns.keys()), index=df.index)
+                df = pd.concat([df, dfn], axis=1)
+
+            except Exception as e:
+                if self.logger:
+                    self.logger.log(f'[ERROR ON DF CONCAT]: {e}')
+
         return df
 
     def get_feature_names(self) -> List[str]:

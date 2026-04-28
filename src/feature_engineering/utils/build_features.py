@@ -1,10 +1,10 @@
 import pickle
-import pickle
 import time
+from typing import Tuple
 
 import pandas as pd
 
-from src.feature_engineering.base import FeaturePipeline
+from src.feature_engineering.base import FeaturePipeline, BaseFeature
 from src.feature_engineering.bayes_posterior import BayesPosteriorFeature
 from src.feature_engineering.last_game_value import LastGameValueFeature
 from src.feature_engineering.moving_avg import ExponentialMovingAvgFeature, CumSeasonAvgFeature, CumSeasonEMAFeature, \
@@ -12,29 +12,48 @@ from src.feature_engineering.moving_avg import ExponentialMovingAvgFeature, CumS
 from src.feature_engineering.player_streak import PlayerHotStreakFeature
 from src.feature_engineering.utils.cache import gen_cache_file, check_cache
 from src.logging.logger import Logger
+from src.modeling_framework.framework.constants import FS_MINUTES, FS_POINTS
 from src.modeling_framework.framework.dataloader import NBADataLoader
 from src.types.game_types import GAME_FEATURES, CURRENT_SEASON
 from src.types.player_types import PlayerType, PLAYER_FEATURES
 from src.utils.date import dint_to_date
 
 
-# TODO: should not be processing the whole dataset each time for feature building
-#       we only need to compute the last n data points depending on the span / window
-#       this is really slow and sloppy...
-
-
-def get_ft_cols(df):
+def get_ft_cols(data: list[BaseFeature] | pd.DataFrame):
+    """
+    Works with either a pandas DataFrame or a list of Feature objects
+    """
     wanted_subs = ["_bayes_post", "_1g", "_sma_", "_ema_", "_cum_ssn_", "_hot_streak"]
 
-    cols = [
-        col for col in df.columns
-        if any(sub in col for sub in wanted_subs)
-    ]
+    # Case 1: It's a pandas DataFrame
+    if hasattr(data, 'columns'):  # Duck typing for DataFrame
+        cols = [
+            col for col in data.columns
+            if any(sub in col for sub in wanted_subs)
+        ]
+        return cols
 
-    return cols
+    # Case 2: It's a list of Feature objects
+    elif isinstance(data, list):
+        cols = [
+            feat.feature_name for feat in data
+            if any(sub in feat.feature_name for sub in wanted_subs)
+        ]
+        return cols
+
+    # Case 3: Invalid type
+    else:
+        raise TypeError(f"Expected DataFrame or list of Feature objects, got {type(data)}")
 
 
-def build_ft_sets(df, fts, id):
+def is_child_feature(f: BaseFeature, dependents: list[BaseFeature]):
+    return any(f.feature_name in d.feature_name for d in dependents)
+
+
+def get_ft_sets(fts, id) -> Tuple[list[BaseFeature], list[BaseFeature]]:
+    full_ft_set = []
+    full_dependents_set = []
+
     for f in fts:
         features = [
             ExponentialMovingAvgFeature(span=7, source_col=f, group_col=(id,)),
@@ -80,10 +99,10 @@ def build_ft_sets(df, fts, id):
                                            group_col=(id, 'season'))
                 )
 
-        features.extend(dependents)
-        pipeline = FeaturePipeline(features)
-        df = pipeline.transform(df, sort_order=(id, 'season', 'date'))
-    return df
+        full_dependents_set.extend(dependents)
+        full_ft_set.extend(features)
+
+    return full_ft_set, full_dependents_set
 
 
 def build_game_lvl_fts(logger: Logger = None, cache: bool = False, date: int = None, recent: bool = False):
@@ -130,23 +149,38 @@ def build_game_lvl_fts(logger: Logger = None, cache: bool = False, date: int = N
     future_rows['date'] = pd.Timestamp('2030-01-01')
 
     games = pd.concat([games, future_rows], ignore_index=True)
-    games = build_ft_sets(games, GAME_FEATURES, 'team_id')
 
-    fts_cols = get_ft_cols(games)
-    games = games.dropna(subset=fts_cols)
+    features, dependents = get_ft_sets(GAME_FEATURES, 'team_id')
+    fts_cols = get_ft_cols(features)
+    dps_cols = get_ft_cols(dependents)
+
+    features = [f for f in features if f.feature_name in fts_cols]
+    dependents = [d for d in dependents if d.feature_name in dps_cols]
+
+    if logger:
+        t1 = time.time()
+        logger.log(f'[FEATURE SETS CREATED]: {round((t1 - t), 2)}s')
+
+    # need to build the raw features first as the dependents are based on these
+    pipeline = FeaturePipeline(features, logger=logger)
+    games = pipeline.transform(games, sort_order=('game_id', 'season', 'date'))
+
+    pipeline = FeaturePipeline(dependents, logger=logger)
+    games = pipeline.transform(games, sort_order=('game_id', 'season', 'date'))
+
+    games = games.dropna(subset=fts_cols + dps_cols)
     games = games[games['season'] > games['season'].min()].copy()
 
     if logger:
         end = time.time()
-        logger.log(f'[FEATURE BUILDING COMPLETE]: {round((end - start), 2) / 60}m')
+        logger.log(f'[FEATURE BUILDING COMPLETE]: {round((end - t1), 2)}s')
 
-    if cache:
-        try:
-            with open(gen_cache_file('game_fts', date), "wb") as f:
-                pickle.dump(games, f)
-        except Exception as e:
-            if logger:
-                logger.log(f'[ERROR ON SAVING CACHE]: {e}')
+    try:
+        with open(gen_cache_file('game_fts', date), "wb") as f:
+            pickle.dump(games, f)
+    except Exception as e:
+        if logger:
+            logger.log(f'[ERROR ON SAVING CACHE]: {e}')
 
     return games
 
@@ -196,15 +230,31 @@ def build_player_lvl_fts(logger: Logger = None, cache: bool = False, date: int =
     future_rows['date'] = pd.Timestamp('2030-01-01')
 
     player_data = pd.concat([player_data, future_rows], ignore_index=True)
-    player_data = build_ft_sets(player_data, PLAYER_FEATURES, 'player_id')
 
-    fts_cols = get_ft_cols(player_data)
-    player_data = player_data.dropna(subset=fts_cols)
+    features, dependents = get_ft_sets(PLAYER_FEATURES, 'player_id')
+
+    # only need the features that actually build the minutes + ppm model
+    # but, we need to retain the features that appear in the dependents
+    dependents = [d for d in dependents if d.feature_name in list(set(FS_MINUTES + FS_POINTS))]
+    features = [f for f in features if is_child_feature(f, dependents) or f.feature_name in list(set(FS_MINUTES + FS_POINTS))]
+
+    if logger:
+        t1 = time.time()
+        logger.log(f'[FEATURE SETS CREATED]: {round((t1 - t), 2)}s')
+
+    # build out features then dependents
+    pipeline = FeaturePipeline(features, logger=logger)
+    player_data = pipeline.transform(player_data, sort_order=('player_id', 'season', 'date'))
+
+    pipeline = FeaturePipeline(dependents, logger=logger)
+    player_data = pipeline.transform(player_data, sort_order=('player_id', 'season', 'date'))
+
+    player_data = player_data.dropna(subset=get_ft_cols(features + dependents))
     player_data = player_data[player_data['season'] > player_data['season'].min()].copy()
 
     if logger:
         end = time.time()
-        logger.log(f'[FEATURE BUILDING COMPLETE]: {round((end - start) / 60, 2)}m')
+        logger.log(f'[FEATURE BUILDING COMPLETE]: {round((end - t1), 2)}s')
 
     try:
         with open(gen_cache_file('player_fts', date), "wb") as f:
