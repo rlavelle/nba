@@ -36,6 +36,7 @@ class NBAStatsApi(API):
                              use_session=True,
                              reset_session_per_retry=True)
 
+        # TODO: this is sloppy should get cleaned up and coded...
         if 'error' in response:
             return response
 

@@ -65,21 +65,26 @@ class API:
                 if response.status_code == 200:
                     return response.json()
 
-                # Handle retryable status codes
                 if response.status_code in {503, 429, 500, 502, 504}:
-                    msg = f"[{attempt}/{max_retries}] Server error {response.status_code} for {url}. Retrying in {retry_interval:.1f}s."
+                    msg = f"[{attempt}/{max_retries}] Server error {response.status_code} for {url}"
+
+                    # theres no data, we can exit
+                    self.logger.log(msg)
+                    self.logger.log(f"Params: {params}")
+                    break
+
+                elif reset_session_per_retry and use_session and response.status_code in {401, 403}:
+                    session = requests.Session()
+                    if headers:
+                        session.headers.update(headers)
+                    msg = f"[{attempt}/{max_retries}] Force Reject {response.status_code} for {url}. Retrying in {retry_interval:.1f}s."
+
                 else:
                     msg = f"[{attempt}/{max_retries}] Unexpected status {response.status_code} for {url}. Retrying in {retry_interval:.1f}s."
 
                 self.logger.log(msg)
                 self.logger.log(f"Params: {params}")
-
-                if reset_session_per_retry and use_session and response.status_code in {401, 403}:
-                    session = requests.Session()
-                    if headers:
-                        session.headers.update(headers)
-
-                time.sleep(retry_interval)
+                continue
 
             except requests.exceptions.Timeout:
                 msg = f"[{attempt}/{max_retries}] Timeout for {url}. Retrying in {retry_interval:.1f}s."
@@ -112,6 +117,7 @@ class API:
         if use_session and session:
             session.close()
 
+        # TODO: this should get cleaned up and have a much more specific return value...
         msg = f"[ERROR] Failed after {max_retries} attempts for {url} with params {params}."
         self.logger.log(msg)
         return {'error': f"Failed after {max_retries} attempts"}

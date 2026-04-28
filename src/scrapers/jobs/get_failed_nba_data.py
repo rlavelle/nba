@@ -11,6 +11,7 @@ from src.scrapers.jobs.get_prev_nba_data import update_nba_data
 from src.scrapers.nba.utils.validation import is_date_data_complete, DataCompleteness
 from src.utils.file_io import get_dirs
 
+# TODO: should this pattern be a decorator?
 def collect_data_wth_retry(logger: Logger,
                            retries: int,
                            delay: int,
@@ -43,6 +44,7 @@ def get_incomplete_games(data_path):
 
     return incomplete_games
 
+# TODO: these jobs scripts (all of them) should be turned into pipeline classes
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description='NBA data scraper')
     parser.add_argument('--retries', type=int, help='Total retries for cron job (default: 5)')

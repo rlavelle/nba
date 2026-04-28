@@ -24,6 +24,7 @@ This job is run to scrape games *after* they occur
     - runs in the morning to get results of prev day
 """
 
+# TODO: most of these functions should be moved to a util folder theyre used across other files...
 
 def get_data_path(config_path: str) -> Tuple[str, list[str]]:
     config = configparser.ConfigParser()
@@ -38,10 +39,13 @@ def scrape_games_for_day(date: datetime, data_path: str, api: NBAStatsApi, logge
     logger.log(f'[SCRAPE FOR {date}]')
 
     date_path = os.path.join(data_path, str(dint))
+
+    # TODO: should we be making this folder if theres no games?? seems sloppy
     os.makedirs(date_path, exist_ok=True)
 
     games = api.get_games(date=lookup)
 
+    # TODO: this should rely on an error code...
     if 'error' in games:
         msg = f'Bad API hit on {date}: {games["error"]}'
         logger.log(msg)
@@ -95,6 +99,11 @@ def parse_and_insert_if_complete(date: datetime, data_path: str, logger: Logger)
 
     res = is_date_data_complete(date_path, dint)
     # TODO: is this going to be buggy? why were partials inserting before... check git history
+    #       if the data is incomplete because there were no games this still gets thrown
+    #       should use the codes better
+    #
+    # TODO: if its just one game thats missing all its stats should we insert all other games?
+    #       does the game need to be decoupled from the date for this?
     if res != DataCompleteness.COMPLETE and res != DataCompleteness.PARTIAL_STATS_MISSED:
         logger.log(f'[ERROR IN SCRAPE]: Not all data collected for {dint} - error {res}')
         if len(os.listdir(date_path)) == 1:
