@@ -31,7 +31,7 @@ if __name__ == "__main__":
     if not args.offline:
         logger = Logger(name='build_models', daily_cron=True)
     else:
-        logger = Logger(daily_cron=True)
+        logger = Logger(name='build_models_test', daily_cron=True)
 
     date = datetime.datetime.strptime(args.date, '%Y-%m-%d') if args.date else datetime.date.today()
     curr_date = date_to_dint(date)
@@ -79,9 +79,10 @@ if __name__ == "__main__":
     money_line_model = None
 
     try:
-        prop_model = build_player_prop_model(train_player_data)
         t = time.time()
-        logger.log(f'[BUILT PROP MODEL]: {round((t - start), 2)}s')
+        prop_model = build_player_prop_model(train_player_data)
+        t1 = time.time()
+        logger.log(f'[BUILT PROP MODEL]: {round((t1 - t), 2)}s')
     except Exception as e:
         logger.log(f'[ERROR BUILDING PROP MODEL]: {e}')
         insert_error({'msg': str(e)})
@@ -96,9 +97,10 @@ if __name__ == "__main__":
     #     insert_error({'msg': str(e)})
 
     try:
-        money_line_model = build_money_line_model(train_game_data)
         t = time.time()
-        logger.log(f'[BUILT MONEYLINE MODEL]: {round((t - start), 2)}s')
+        money_line_model = build_money_line_model(train_game_data)
+        t1 = time.time()
+        logger.log(f'[BUILT MONEYLINE MODEL]: {round((t1 - t), 2)}s')
     except Exception as e:
         logger.log(f'[ERROR BUILDING PROP MODEL]: {e}')
         insert_error({'msg': str(e)})
@@ -112,6 +114,8 @@ if __name__ == "__main__":
         except Exception as e:
             logger.log(f'[ERROR SAVING PROP MODEL]: {e}')
             insert_error({'msg': str(e)})
+    else:
+        logger.log(f'[SKIP SAVE]: PROP MODEL')
 
     # TODO: fix spread model
     # if spread_model and not args.skip_save:
@@ -134,9 +138,11 @@ if __name__ == "__main__":
         except Exception as e:
             logger.log(f'[ERROR SAVING MONEYLINE MODEL]: {e}')
             insert_error({'msg': str(e)})
+    else:
+        logger.log(f'[SKIP SAVE]: MONEYLINE MODEL')
 
     end = time.time()
-    logger.log(f'[MODELS BUILT AND SAVED]: {round((end - start), 2)}s')
+    logger.log(f'[MODELS BUILT]: {round((end - start) / 60, 2)}m')
 
     if not args.offline:
         logger.email_log()

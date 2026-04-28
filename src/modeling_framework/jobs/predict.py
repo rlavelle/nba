@@ -43,7 +43,7 @@ if __name__ == "__main__":
     if not args.offline:
         logger = Logger(name='predictions', daily_cron=True, admin=True)
     else:
-        logger = Logger(daily_cron=True, admin=True)
+        logger = Logger(name='predict_test', daily_cron=True, admin=True)
 
     logger.log(f'[STARTING PREDICTIONS]')
 
