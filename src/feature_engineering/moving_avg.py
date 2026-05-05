@@ -12,11 +12,13 @@ class SimpleMovingAvgFeature(BaseFeature):
         self.source_col = source_col
         self.group_col = group_col
 
+        super().__init__(self.group_col)
+
     @property
     def feature_name(self) -> str:
         return f'{self.source_col}_sma_{self.window}'
 
-    def calculate(self, df: pd.DataFrame) -> pd.Series:
+    def _calculate(self, df: pd.DataFrame) -> pd.Series:
         nan_filler = df.groupby(list(self.group_col))[self.source_col].expanding().mean().shift(1)
         return (df.groupby(list(self.group_col))[self.source_col]
                 .rolling(self.window)
@@ -35,6 +37,8 @@ class ExponentialMovingAvgFeature(BaseFeature):
         self.source_col = source_col
         self.group_col = group_col
 
+        super().__init__(self.group_col)
+
     @property
     def feature_name(self) -> str:
         return f'{self.source_col}_ema_{self.span}'
@@ -42,7 +46,7 @@ class ExponentialMovingAvgFeature(BaseFeature):
     def _f(self, x):
         return 2 / (x + 1)
 
-    def calculate(self, df: pd.DataFrame) -> pd.Series:
+    def _calculate(self, df: pd.DataFrame) -> pd.Series:
         nan_filler = (
             df.groupby(list(self.group_col))[self.source_col]
             .expanding()
@@ -64,19 +68,23 @@ class CumSeasonAvgFeature(BaseFeature):
         self.source_col = source_col
         self.group_col = group_col
 
+        super().__init__(self.group_col)
+
     @property
     def feature_name(self) -> str:
         return f'{self.source_col}_cum_ssn_avg'
 
-    def calculate(self, df: pd.DataFrame) -> pd.Series:
+    def _calculate(self, df: pd.DataFrame) -> pd.Series:
         """
         cumulative season average
         :return: cum season avg
         """
+        nan_filler = df.groupby(list(self.group_col))[self.source_col].expanding().mean().shift(1)
         return (df.groupby(list(self.group_col))[self.source_col]
                 .expanding()
                 .mean()
                 .shift(1)
+                .fillna(nan_filler)
                 .reset_index(level=0, drop=True))
 
 
@@ -89,6 +97,8 @@ class CumSeasonEMAFeature(BaseFeature):
         self.source_col = source_col
         self.group_col = group_col
 
+        super().__init__(self.group_col)
+
     @property
     def feature_name(self) -> str:
         return f'{self.source_col}_cum_ssn_ema'
@@ -96,13 +106,20 @@ class CumSeasonEMAFeature(BaseFeature):
     def _f(self, x):
         return 2 / (x + 1)
 
-    def calculate(self, df: pd.DataFrame) -> pd.Series:
+    def _calculate(self, df: pd.DataFrame) -> pd.Series:
         """
         uses a decay factor of 2 / (n+1)
         :return: exponential weighted average across current observed data per season
         """
+        nan_filler = (
+            df.groupby(list(self.group_col))[self.source_col]
+            .expanding()
+            .apply(lambda x: x.ewm(alpha=self._f(len(x)), adjust=True)
+                   .mean().iloc[-1])
+        )
         return (df.groupby(list(self.group_col))[self.source_col]
                 .expanding()
                 .apply(lambda x: x.ewm(alpha=self._f(len(x)), adjust=False).mean().iloc[-1])
                 .shift(1)
+                .fillna(nan_filler)
                 .reset_index(level=0, drop=True))

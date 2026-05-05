@@ -1,8 +1,12 @@
+import numpy as np
 import pandas as pd
 
 from src.feature_engineering.base import BaseFeature
 
-
+# TODO: theres some strange bug if numpy is > 2.4.0 and pandas is > 2.3.3
+#       where you end up with a phantom div by 0 bug that IS NOT SOLVED
+#       by using a safe div0 function like thats in the class
+#       *** Total lost hours of my life: 3 ***
 class BayesPosteriorFeature(BaseFeature):
     def __init__(self,
                  ybar_col: str,
@@ -15,11 +19,13 @@ class BayesPosteriorFeature(BaseFeature):
         self.id_col = id_col
         self.group_col = group_col
 
+        super().__init__(self.group_col)
+
     @property
     def feature_name(self) -> str:
         return f'{self.source_col}_{self.ybar_col}_bayes_post'
 
-    def calculate(self, df: pd.DataFrame) -> pd.Series:
+    def _calculate(self, df: pd.DataFrame) -> pd.Series:
         """
         Bayesian updating for \theta (mean of source col {f}), using an assumed variance (\sigma^2) on {f}
         where y denotes the current seasons observed data. using an assumed variance means we do not need to use

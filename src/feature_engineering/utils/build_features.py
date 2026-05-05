@@ -25,7 +25,6 @@ def get_ft_cols(data: list[BaseFeature] | pd.DataFrame):
     """
     wanted_subs = ["_bayes_post", "_1g", "_sma_", "_ema_", "_cum_ssn_", "_hot_streak"]
 
-    # Case 1: It's a pandas DataFrame
     if hasattr(data, 'columns'):  # Duck typing for DataFrame
         cols = [
             col for col in data.columns
@@ -33,7 +32,6 @@ def get_ft_cols(data: list[BaseFeature] | pd.DataFrame):
         ]
         return cols
 
-    # Case 2: It's a list of Feature objects
     elif isinstance(data, list):
         cols = [
             feat.feature_name for feat in data
@@ -41,7 +39,6 @@ def get_ft_cols(data: list[BaseFeature] | pd.DataFrame):
         ]
         return cols
 
-    # Case 3: Invalid type
     else:
         raise TypeError(f"Expected DataFrame or list of Feature objects, got {type(data)}")
 
@@ -50,7 +47,7 @@ def is_child_feature(f: BaseFeature, dependents: list[BaseFeature]):
     return any(f.feature_name in d.feature_name for d in dependents)
 
 
-def get_ft_sets(fts, id) -> Tuple[list[BaseFeature], list[BaseFeature]]:
+def get_ft_sets(fts:list[str], id:str) -> Tuple[list[BaseFeature], list[BaseFeature]]:
     full_ft_set = []
     full_dependents_set = []
 
@@ -120,8 +117,11 @@ def build_game_lvl_fts(logger: Logger = None, cache: bool = False, date: int = N
         if ret is not None:
             # when pulling from recent cache need to remove future data,
             # but keep nulled future rows
-            # TODO: somehow there is model bleed, predictions are not the same
-            #       as when they are run without --recent
+
+            # TODO: *** Hours lost tally: 25 ***
+            #       graveyard comment to remember how stupid this was
+            #       drumroll please....
+            #       it was a fucking index, subgroup ordering error, mixed with a dropnan!!
             if date and recent:
                 ret = ret[ret.date <= dint_to_date(date)].copy()
                 ret.loc[ret.date == dint_to_date(date), 'date'] = pd.Timestamp('2030-01-01')
@@ -136,8 +136,13 @@ def build_game_lvl_fts(logger: Logger = None, cache: bool = False, date: int = N
         logger.log(f'[DATA LOADED]: {round((t - start), 2)}s')
 
     games = data_loader.get_data('games')
+
+    # TODO: think... is it worth it to try and cumm fill na values with
+    #       rolling averages? how much data is actually getting dropped
+    #       havent looked at this since the EDA phase...
     games = games.dropna()
     games = games.sort_values(by=['team_id', 'season', 'date'])
+    games = games[games.dint < date].copy()
 
     # for predictions, for each team we add a null row
     #   - row contains the team id, curr season, and a date of 2030-01-01
@@ -163,12 +168,11 @@ def build_game_lvl_fts(logger: Logger = None, cache: bool = False, date: int = N
 
     # need to build the raw features first as the dependents are based on these
     pipeline = FeaturePipeline(features, logger=logger)
-    games = pipeline.transform(games, sort_order=('game_id', 'season', 'date'))
+    games = pipeline.transform(games, sort_order=('team_id', 'season', 'date'))
 
     pipeline = FeaturePipeline(dependents, logger=logger)
-    games = pipeline.transform(games, sort_order=('game_id', 'season', 'date'))
+    games = pipeline.transform(games, sort_order=('team_id', 'season', 'date'))
 
-    games = games.dropna(subset=fts_cols + dps_cols)
     games = games[games['season'] > games['season'].min()].copy()
 
     if logger:
@@ -220,6 +224,8 @@ def build_player_lvl_fts(logger: Logger = None, cache: bool = False, date: int =
     player_data = player_data.dropna()
     player_data = player_data.sort_values(by=['player_id', 'season', 'date'])
 
+    player_data = player_data[player_data.dint < date].copy()
+
     # for predictions, for each player we add a null row
     #   - row contains the player id, curr season, and a date of 2030-01-01
     players = player_data[['player_id']].drop_duplicates()
@@ -249,7 +255,8 @@ def build_player_lvl_fts(logger: Logger = None, cache: bool = False, date: int =
     pipeline = FeaturePipeline(dependents, logger=logger)
     player_data = pipeline.transform(player_data, sort_order=('player_id', 'season', 'date'))
 
-    player_data = player_data.dropna(subset=get_ft_cols(features + dependents))
+    # when its players freshman seasons some data is missing we need to cut it
+    player_data = player_data.dropna(subset=list(set(FS_MINUTES + FS_POINTS)))
     player_data = player_data[player_data['season'] > player_data['season'].min()].copy()
 
     if logger:

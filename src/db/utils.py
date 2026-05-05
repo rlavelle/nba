@@ -16,7 +16,7 @@ def get_engine():
     db_url = config.get('DB_PATHS', 'local_url' if LOCAL else 'prod_url')
     return create_engine(db_url)
 
-
+# TODO: need insert, delete, and update
 def insert_table(table: pd.DataFrame, schema: str, name: str, drop=False):
     engine = get_engine()
 

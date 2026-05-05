@@ -10,9 +10,11 @@ class LastGameValueFeature(BaseFeature):
         self.source_col = source_col
         self.group_col = group_col
 
+        super().__init__(self.group_col)
+
     @property
     def feature_name(self) -> str:
         return f'{self.source_col}_1g'
 
-    def calculate(self, df: pd.DataFrame) -> pd.Series:
-        return df.groupby(list(self.group_col))[self.source_col].shift(1)
+    def _calculate(self, df: pd.DataFrame) -> pd.Series:
+        return df.groupby(list(self.group_col))[self.source_col].shift(1).fillna(0)

@@ -68,6 +68,8 @@ if __name__ == "__main__":
     # total results
     game_wins = game_data[game_data.win == 1].copy()
     player_wins = player_data[player_data.win == 1].copy()
+    game_wins.to_pickle('/tmp/res_games.pkl')
+    player_wins.to_pickle('/tmp/res_player.pkl')
 
     # prev day results
     game_wins_prev = game_wins[game_wins.dint == prev_date].copy()
